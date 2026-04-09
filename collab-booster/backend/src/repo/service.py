@@ -9,7 +9,7 @@ from src.repo.chunker.config_chunker import ConfigChunker
 from src.repo.chunker.markdown_chunker import MarkdownChunker
 from src.repo.cloner import get_git_commits, walk_repo_files
 from src.repo.embedder import Embedder
-from src.repo.indexer import index_chunks
+from src.repo.indexer import clear_repo_chunks, index_chunks
 
 logger = logging.getLogger(__name__)
 
@@ -18,7 +18,13 @@ CONFIG_EXTENSIONS = {".yml", ".yaml", ".toml", ".json", ".env", ".ini", ".cfg"}
 CODE_EXTENSIONS = {".py", ".js", ".ts", ".tsx", ".jsx", ".java", ".go", ".rs"}
 
 
-async def ingest_repo(repo_path: str) -> dict:
+async def ingest_repo(
+    repo_path: str,
+    *,
+    user_id: str,
+    repo_id: str,
+    repo_url: str | None = None,
+) -> dict:
     """Full pipeline: walk files → chunk → embed → index."""
     ast_chunker = ASTChunker()
     md_chunker = MarkdownChunker()
@@ -69,7 +75,14 @@ async def ingest_repo(repo_path: str) -> dict:
     embeddings = await embedder.embed_batch(texts)
 
     # Index
-    await index_chunks(all_chunks, embeddings)
+    await clear_repo_chunks(user_id=user_id, repo_id=repo_id)
+    await index_chunks(
+        all_chunks,
+        embeddings,
+        user_id=user_id,
+        repo_id=repo_id,
+        repo_url=repo_url,
+    )
 
     return {
         "files_processed": len(files),

@@ -15,14 +15,28 @@ def _get_embedder() -> Embedder:
     return _embedder
 
 
-async def hybrid_search(req: SearchRequest) -> list[SearchResult]:
+async def hybrid_search(
+    req: SearchRequest,
+    *,
+    user_id: str | None = None,
+    repo_id: str | None = None,
+) -> list[SearchResult]:
     embedder = _get_embedder()
 
     # Parallel: embed query + BM25 search
     query_vector = await embedder.embed_one(req.query)
 
     bm25_engine = get_bm25_engine()
-    bm25_results = bm25_engine.search(req.query, top_k=20) if bm25_engine.is_built else []
+    bm25_results = bm25_engine.search(req.query, top_k=60) if bm25_engine.is_built else []
+    if user_id or repo_id:
+        filtered = []
+        for chunk_id, score, payload in bm25_results:
+            if user_id and payload.get("user_id") != user_id:
+                continue
+            if repo_id and payload.get("repo_id") != repo_id:
+                continue
+            filtered.append((chunk_id, score, payload))
+        bm25_results = filtered[:20]
 
     vec_results = await vector_search(
         query_vector=query_vector,
@@ -30,6 +44,8 @@ async def hybrid_search(req: SearchRequest) -> list[SearchResult]:
         chunk_type=req.chunk_type,
         file_path=req.file_path,
         language=req.language,
+        user_id=user_id,
+        repo_id=repo_id,
     )
 
     fused = rrf_fusion(bm25_results, vec_results, top_k=req.top_k)

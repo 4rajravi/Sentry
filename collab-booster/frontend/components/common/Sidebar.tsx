@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { clsx } from "clsx";
+import { useRepoContext } from "@/hooks/useRepoContext";
 
 interface NavItem {
   href: string;
@@ -102,6 +103,8 @@ function Icon({ name }: { name: NavItem["icon"] }) {
 export function Sidebar({ role, fullName, onLogout }: SidebarProps) {
   const pathname = usePathname();
   const nav = role === "ba" ? BA_NAV : DEV_NAV;
+  const { repoReady } = useRepoContext();
+  const homeHref = role === "ba" ? "/ba" : "/dev";
 
   return (
     <aside className="w-64 min-h-screen border-r border-zinc-200 bg-white text-zinc-900 backdrop-blur">
@@ -116,6 +119,7 @@ export function Sidebar({ role, fullName, onLogout }: SidebarProps) {
 
       <nav className="flex-1 px-3 py-2">
         {nav.map((item) => {
+          const disabled = !repoReady && item.href !== homeHref;
           const active =
             item.href === "/ba" || item.href === "/dev"
               ? pathname === item.href
@@ -124,12 +128,17 @@ export function Sidebar({ role, fullName, onLogout }: SidebarProps) {
           return (
             <Link
               key={item.href}
-              href={item.href}
+              href={disabled ? "#" : item.href}
+              onClick={(e) => {
+                if (disabled) e.preventDefault();
+              }}
+              aria-disabled={disabled}
               className={clsx(
                 "mb-1.5 flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-all",
                 active
-                  ? "border border-red-500/40 bg-red-500/10 text-red-700"
-                  : "border border-transparent text-zinc-600 hover:border-zinc-200 hover:bg-white hover:text-zinc-900"
+                  ? "border border-red-300 bg-red-50 text-red-700"
+                  : "border border-transparent text-zinc-600 hover:border-zinc-200 hover:bg-white hover:text-zinc-900",
+                disabled && "cursor-not-allowed opacity-40 hover:border-transparent hover:bg-transparent hover:text-zinc-600"
               )}
             >
               <Icon name={item.icon} />

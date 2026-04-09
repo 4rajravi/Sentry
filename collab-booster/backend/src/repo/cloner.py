@@ -2,6 +2,7 @@
 import os
 import tempfile
 from pathlib import Path
+from urllib.parse import quote
 
 import git
 
@@ -21,11 +22,19 @@ TEXT_EXTENSIONS = {
 }
 
 
-def clone_repo(url: str, target_dir: str | None = None) -> str:
+def _with_github_token(url: str, access_token: str) -> str:
+    if not url.startswith("https://github.com/"):
+        return url
+    token = quote(access_token, safe="")
+    return url.replace("https://", f"https://x-access-token:{token}@")
+
+
+def clone_repo(url: str, target_dir: str | None = None, access_token: str | None = None) -> str:
     """Clone a git repo and return the local path."""
     if target_dir is None:
         target_dir = tempfile.mkdtemp(prefix="collab_booster_repo_")
-    git.Repo.clone_from(url, target_dir)
+    clone_url = _with_github_token(url, access_token) if access_token else url
+    git.Repo.clone_from(clone_url, target_dir)
     return target_dir
 
 

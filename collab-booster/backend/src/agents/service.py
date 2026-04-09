@@ -2,9 +2,17 @@
 from langchain_core.messages import HumanMessage
 
 from src.agents.state import AgentState
+from src.repo.runtime import repo_runtime_scope
 
 
-async def run_code_qa(question: str, user_role: str, user_id: str) -> str:
+async def run_code_qa(
+    question: str,
+    user_role: str,
+    user_id: str,
+    *,
+    repo_path: str | None = None,
+    repo_id: str | None = None,
+) -> str:
     from src.agents.graphs.code_qa_graph import code_qa_app
 
     state: AgentState = {
@@ -15,7 +23,8 @@ async def run_code_qa(question: str, user_role: str, user_id: str) -> str:
         "context": {},
         "output": None,
     }
-    result = await code_qa_app.ainvoke(state)
+    with repo_runtime_scope(user_id=user_id, repo_id=repo_id, repo_path=repo_path):
+        result = await code_qa_app.ainvoke(state)
     last = result["messages"][-1]
     return last.content if hasattr(last, "content") else str(last)
 
@@ -48,7 +57,13 @@ async def run_commit_explainer(
     return {"commit_sha": commit_sha, "business_summary": "Could not explain this commit.", "impact": "", "files_changed": files_changed}
 
 
-async def run_req_to_jira(requirement_doc: str, user_id: str) -> dict:
+async def run_req_to_jira(
+    requirement_doc: str,
+    user_id: str,
+    *,
+    repo_path: str | None = None,
+    repo_id: str | None = None,
+) -> dict:
     from src.agents.graphs.req_to_jira_graph import req_to_jira_app
 
     state: AgentState = {
@@ -59,7 +74,8 @@ async def run_req_to_jira(requirement_doc: str, user_id: str) -> dict:
         "context": {"requirement_doc": requirement_doc},
         "output": None,
     }
-    result = await req_to_jira_app.ainvoke(state)
+    with repo_runtime_scope(user_id=user_id, repo_id=repo_id, repo_path=repo_path):
+        result = await req_to_jira_app.ainvoke(state)
     output = result.get("output")
     if output:
         return output.model_dump()
@@ -82,7 +98,14 @@ async def run_code_to_bizdoc(code_content: str, doc_type: str, user_id: str) -> 
     return output.model_dump() if output else {}
 
 
-async def run_vacation_catchup(from_date: str, to_date: str, user_id: str) -> dict:
+async def run_vacation_catchup(
+    from_date: str,
+    to_date: str,
+    user_id: str,
+    *,
+    repo_path: str | None = None,
+    repo_id: str | None = None,
+) -> dict:
     from src.agents.graphs.vacation_catchup_graph import vacation_catchup_app
 
     state: AgentState = {
@@ -93,12 +116,18 @@ async def run_vacation_catchup(from_date: str, to_date: str, user_id: str) -> di
         "context": {"from_date": from_date, "to_date": to_date},
         "output": None,
     }
-    result = await vacation_catchup_app.ainvoke(state)
+    with repo_runtime_scope(user_id=user_id, repo_id=repo_id, repo_path=repo_path):
+        result = await vacation_catchup_app.ainvoke(state)
     output = result.get("output")
     return output.model_dump() if output else {}
 
 
-async def run_onboarding(user_id: str) -> dict:
+async def run_onboarding(
+    user_id: str,
+    *,
+    repo_path: str | None = None,
+    repo_id: str | None = None,
+) -> dict:
     from src.agents.graphs.onboarding_graph import onboarding_app
 
     state: AgentState = {
@@ -109,12 +138,19 @@ async def run_onboarding(user_id: str) -> dict:
         "context": {},
         "output": None,
     }
-    result = await onboarding_app.ainvoke(state)
+    with repo_runtime_scope(user_id=user_id, repo_id=repo_id, repo_path=repo_path):
+        result = await onboarding_app.ainvoke(state)
     output = result.get("output")
     return output.model_dump() if output else {}
 
 
-async def run_implementation_guidance(ticket: dict, user_id: str) -> dict:
+async def run_implementation_guidance(
+    ticket: dict,
+    user_id: str,
+    *,
+    repo_path: str | None = None,
+    repo_id: str | None = None,
+) -> dict:
     from src.agents.graphs.implementation_guidance_graph import implementation_guidance_app
 
     state: AgentState = {
@@ -125,6 +161,7 @@ async def run_implementation_guidance(ticket: dict, user_id: str) -> dict:
         "context": {"ticket": ticket},
         "output": None,
     }
-    result = await implementation_guidance_app.ainvoke(state)
+    with repo_runtime_scope(user_id=user_id, repo_id=repo_id, repo_path=repo_path):
+        result = await implementation_guidance_app.ainvoke(state)
     output = result.get("output")
     return output.model_dump() if output else {}

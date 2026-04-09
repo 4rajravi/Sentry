@@ -23,6 +23,7 @@ async def lifespan(app: FastAPI):
     # Startup
     import src.auth.models  # noqa
     import src.jira.models  # noqa
+    import src.repo.models  # noqa
 
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)

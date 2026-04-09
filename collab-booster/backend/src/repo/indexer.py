@@ -1,7 +1,15 @@
 """Writes chunks to Qdrant vector store and maintains BM25 index."""
-import uuid
+import hashlib
 
-from qdrant_client.models import Distance, PointStruct, VectorParams
+from qdrant_client.models import (
+    Distance,
+    FieldCondition,
+    Filter,
+    FilterSelector,
+    MatchValue,
+    PointStruct,
+    VectorParams,
+)
 
 from src.common.qdrant import get_qdrant
 from src.config import settings
@@ -21,18 +29,46 @@ async def ensure_collection():
         )
 
 
-async def index_chunks(chunks: list[Chunk], embeddings: list[list[float]]):
+async def clear_repo_chunks(user_id: str, repo_id: str):
+    client = get_qdrant()
+    filt = Filter(
+        must=[
+            FieldCondition(key="user_id", match=MatchValue(value=user_id)),
+            FieldCondition(key="repo_id", match=MatchValue(value=repo_id)),
+        ]
+    )
+    await client.delete(
+        collection_name=settings.qdrant_collection,
+        points_selector=FilterSelector(filter=filt),
+    )
+
+
+async def index_chunks(
+    chunks: list[Chunk],
+    embeddings: list[list[float]],
+    *,
+    user_id: str,
+    repo_id: str,
+    repo_url: str | None = None,
+):
     """Upsert chunks with their embeddings into Qdrant."""
     await ensure_collection()
     client = get_qdrant()
 
     points = []
     for chunk, embedding in zip(chunks, embeddings):
-        point_id = str(uuid.uuid4())
+        source_id = (
+            f"{repo_id}|{chunk.metadata.file_path}|{chunk.metadata.chunk_type}|"
+            f"{chunk.metadata.start_line}|{chunk.metadata.end_line}|{chunk.body[:200]}"
+        )
+        point_id = hashlib.sha1(source_id.encode("utf-8")).hexdigest()
         payload = {
             "content": chunk.content,
             "context_header": chunk.context_header,
             "body": chunk.body,
+            "user_id": user_id,
+            "repo_id": repo_id,
+            "repo_url": repo_url,
             "chunk_type": chunk.metadata.chunk_type,
             "file_path": chunk.metadata.file_path,
             "language": chunk.metadata.language,

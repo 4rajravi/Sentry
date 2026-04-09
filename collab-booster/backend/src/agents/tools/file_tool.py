@@ -4,6 +4,8 @@ from pathlib import Path
 
 from langchain_core.tools import tool
 
+from src.repo.runtime import get_repo_runtime_context
+
 REPO_PATH = os.environ.get("SEED_REPO_PATH", "/app/seed-data/loan-calculator")
 
 
@@ -14,7 +16,9 @@ def read_file(file_path: str) -> str:
     Args:
         file_path: Relative path from repo root (e.g. 'src/calculator.py')
     """
-    full_path = Path(REPO_PATH) / file_path
+    runtime = get_repo_runtime_context()
+    repo_path = runtime.repo_path or REPO_PATH
+    full_path = Path(repo_path) / file_path
     if not full_path.exists():
         return f"File not found: {file_path}"
     if not full_path.is_file():
@@ -33,7 +37,9 @@ def list_files(directory: str = "") -> str:
     Args:
         directory: Relative directory path (empty = repo root)
     """
-    full_path = Path(REPO_PATH) / directory
+    runtime = get_repo_runtime_context()
+    repo_path = runtime.repo_path or REPO_PATH
+    full_path = Path(repo_path) / directory
     if not full_path.exists():
         return f"Directory not found: {directory}"
 

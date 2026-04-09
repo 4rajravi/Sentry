@@ -4,6 +4,8 @@ import os
 import git
 from langchain_core.tools import tool
 
+from src.repo.runtime import get_repo_runtime_context
+
 REPO_PATH = os.environ.get("SEED_REPO_PATH", "/app/seed-data/loan-calculator")
 
 
@@ -17,7 +19,9 @@ def git_log(max_count: int = 10, since: str | None = None, until: str | None = N
         until: ISO date string, only show commits before this date
     """
     try:
-        repo = git.Repo(REPO_PATH)
+        runtime = get_repo_runtime_context()
+        repo_path = runtime.repo_path or REPO_PATH
+        repo = git.Repo(repo_path)
         kwargs = {"max_count": max_count}
         if since:
             kwargs["after"] = since
@@ -43,7 +47,9 @@ def git_diff(commit_sha: str) -> str:
         commit_sha: The commit SHA to show the diff for
     """
     try:
-        repo = git.Repo(REPO_PATH)
+        runtime = get_repo_runtime_context()
+        repo_path = runtime.repo_path or REPO_PATH
+        repo = git.Repo(repo_path)
         commit = repo.commit(commit_sha)
         if commit.parents:
             diff = commit.diff(commit.parents[0], create_patch=True)
@@ -67,7 +73,9 @@ def git_show(commit_sha: str) -> str:
         commit_sha: The commit SHA to inspect
     """
     try:
-        repo = git.Repo(REPO_PATH)
+        runtime = get_repo_runtime_context()
+        repo_path = runtime.repo_path or REPO_PATH
+        repo = git.Repo(repo_path)
         commit = repo.commit(commit_sha)
         files = list(commit.stats.files.keys())[:20]
         return (

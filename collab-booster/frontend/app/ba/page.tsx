@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { useAuth } from "@/hooks/useAuth";
+import { useRepoContext } from "@/hooks/useRepoContext";
+import { RepoConnector } from "@/components/common/RepoConnector";
 import { Card, CardContent } from "@/components/ui/card";
 
 const ACTIONS = [
@@ -33,6 +35,7 @@ const ACTIONS = [
 
 export default function BAHome() {
   const { user } = useAuth("business_analyst");
+  const { repoReady } = useRepoContext();
 
   return (
     <div className="page-wrap">
@@ -44,10 +47,19 @@ export default function BAHome() {
         <p className="mt-3 text-zinc-600">Pick the workflow you want to run first.</p>
       </div>
 
+      <RepoConnector />
+
       <div className="grid gap-4 md:grid-cols-2">
         {ACTIONS.map((action) => (
-          <Link key={action.href} href={action.href}>
-            <Card className="h-full cursor-pointer">
+          <Link
+            key={action.href}
+            href={repoReady ? action.href : "#"}
+            onClick={(e) => {
+              if (!repoReady) e.preventDefault();
+            }}
+            aria-disabled={!repoReady}
+          >
+            <Card className={`h-full ${repoReady ? "cursor-pointer" : "cursor-not-allowed opacity-50"}`}>
               <CardContent className="py-6">
                 <p className="text-xs font-semibold uppercase tracking-[0.18em] text-red-700">{action.code}</p>
                 <h3 className="mt-3 text-xl font-semibold text-zinc-900">{action.title}</h3>

@@ -13,6 +13,7 @@ from src.auth.dependencies import require_role
 from src.auth.models import User, UserRole
 from src.common.database import get_db
 from src.jira.service import get_ticket, list_tickets
+from src.repo.context_service import resolve_runtime_repo_for_user
 
 router = APIRouter(prefix="/api/dev", tags=["dev-cockpit"])
 _require_dev = require_role(UserRole.DEVELOPER)
@@ -56,7 +57,13 @@ async def get_ticket_implementation_context(
         "acceptance_criteria": ticket.acceptance_criteria,
         "affected_files": ticket.affected_files,
     }
-    guidance = await run_implementation_guidance(ticket_dict, user_id=current_user.id)
+    repo_path, repo_id = await resolve_runtime_repo_for_user(db, current_user.id)
+    guidance = await run_implementation_guidance(
+        ticket_dict,
+        user_id=current_user.id,
+        repo_path=repo_path,
+        repo_id=repo_id,
+    )
     return {"ticket_id": ticket_id, "guidance": guidance}
 
 
@@ -76,20 +83,28 @@ async def get_ticket_commits(
 async def vacation_catchup(
     body: CatchupRequest,
     current_user: User = Depends(_require_dev),
+    db: AsyncSession = Depends(get_db),
 ):
     """Summarize what happened in the project during a date range."""
+    repo_path, repo_id = await resolve_runtime_repo_for_user(db, current_user.id)
     result = await run_vacation_catchup(
         from_date=body.from_date,
         to_date=body.to_date,
         user_id=current_user.id,
+        repo_path=repo_path,
+        repo_id=repo_id,
     )
     return result
 
 
 @router.post("/onboard")
-async def onboarding(current_user: User = Depends(_require_dev)):
+async def onboarding(
+    current_user: User = Depends(_require_dev),
+    db: AsyncSession = Depends(get_db),
+):
     """Generate a personalized onboarding guide for a new developer."""
-    result = await run_onboarding(user_id=current_user.id)
+    repo_path, repo_id = await resolve_runtime_repo_for_user(db, current_user.id)
+    result = await run_onboarding(user_id=current_user.id, repo_path=repo_path, repo_id=repo_id)
     return result
 
 
@@ -97,14 +112,18 @@ async def onboarding(current_user: User = Depends(_require_dev)):
 async def dev_chat(
     body: ChatRequest,
     current_user: User = Depends(_require_dev),
+    db: AsyncSession = Depends(get_db),
 ):
     """Chat with the codebase as a developer."""
     question = body.question
     if body.ticket_id:
         question = f"[Context: Working on ticket {body.ticket_id}] {question}"
+    repo_path, repo_id = await resolve_runtime_repo_for_user(db, current_user.id)
     answer = await run_code_qa(
         question=question,
         user_role="developer",
         user_id=current_user.id,
+        repo_path=repo_path,
+        repo_id=repo_id,
     )
     return {"answer": answer}

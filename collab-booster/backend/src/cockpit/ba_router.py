@@ -17,6 +17,7 @@ from src.common.database import get_db
 from src.jira.models import JiraTicket, JiraCommit, TicketStatus
 from src.jira.schemas import TicketCreate
 from src.jira.service import create_ticket, list_tickets
+from src.repo.context_service import resolve_runtime_repo_for_user
 
 router = APIRouter(prefix="/api/ba", tags=["ba-cockpit"])
 _require_ba = require_role(UserRole.BUSINESS_ANALYST)
@@ -126,11 +127,15 @@ async def generate_business_doc(
 async def doc_to_tickets(
     body: DocToTicketsRequest,
     current_user: User = Depends(_require_ba),
+    db: AsyncSession = Depends(get_db),
 ):
     """Convert a requirement document to Jira ticket proposals."""
+    repo_path, repo_id = await resolve_runtime_repo_for_user(db, current_user.id)
     result = await run_req_to_jira(
         requirement_doc=body.requirement_doc,
         user_id=current_user.id,
+        repo_path=repo_path,
+        repo_id=repo_id,
     )
     return result
 
@@ -164,11 +169,15 @@ async def bulk_create_tickets(
 async def ba_chat(
     body: ChatRequest,
     current_user: User = Depends(_require_ba),
+    db: AsyncSession = Depends(get_db),
 ):
     """Chat with the codebase in business language."""
+    repo_path, repo_id = await resolve_runtime_repo_for_user(db, current_user.id)
     answer = await run_code_qa(
         question=body.question,
         user_role="business_analyst",
         user_id=current_user.id,
+        repo_path=repo_path,
+        repo_id=repo_id,
     )
     return {"answer": answer}

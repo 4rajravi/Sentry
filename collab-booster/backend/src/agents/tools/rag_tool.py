@@ -1,6 +1,7 @@
 """RAG search tool for LangChain agents."""
 from langchain_core.tools import tool
 
+from src.repo.runtime import get_repo_runtime_context
 from src.search.schemas import SearchRequest
 from src.search.service import hybrid_search
 
@@ -15,7 +16,8 @@ async def rag_search(query: str, top_k: int = 5, chunk_type: str | None = None) 
         chunk_type: Optional filter: 'function', 'class', 'file_summary', 'commit', 'markdown_section'
     """
     req = SearchRequest(query=query, top_k=top_k, chunk_type=chunk_type)
-    results = await hybrid_search(req)
+    ctx = get_repo_runtime_context()
+    results = await hybrid_search(req, user_id=ctx.user_id, repo_id=ctx.repo_id)
     if not results:
         return "No relevant code found for this query."
 

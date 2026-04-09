@@ -11,6 +11,8 @@ async def vector_search(
     chunk_type: str | None = None,
     file_path: str | None = None,
     language: str | None = None,
+    user_id: str | None = None,
+    repo_id: str | None = None,
 ) -> list[tuple[str, float, dict]]:
     """Search Qdrant. Returns (point_id, score, payload) tuples."""
     client = get_qdrant()
@@ -23,6 +25,10 @@ async def vector_search(
         conditions.append(FieldCondition(key="file_path", match=MatchValue(value=file_path)))
     if language:
         conditions.append(FieldCondition(key="language", match=MatchValue(value=language)))
+    if user_id:
+        conditions.append(FieldCondition(key="user_id", match=MatchValue(value=user_id)))
+    if repo_id:
+        conditions.append(FieldCondition(key="repo_id", match=MatchValue(value=repo_id)))
 
     query_filter = Filter(must=conditions) if conditions else None
 

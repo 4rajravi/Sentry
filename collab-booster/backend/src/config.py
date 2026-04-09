@@ -16,12 +16,17 @@ class Settings(BaseSettings):
     openai_api_key: str = ""
     embedding_model: str = "text-embedding-3-small"
     fast_model: str = "gpt-4o-mini"
-    smart_model: str = "gpt-4o"
+    smart_model: str = "gpt-4o-mini"
 
     # Auth
     jwt_secret: str = "dev-secret-change-me"
     jwt_algorithm: str = "HS256"
     jwt_expire_minutes: int = 480
+
+    # GitHub OAuth (for private repo access)
+    github_client_id: str = ""
+    github_client_secret: str = ""
+    github_oauth_scope: str = "repo read:user"
 
     model_config = {"env_file": ".env", "extra": "ignore"}
 
