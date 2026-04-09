@@ -170,7 +170,7 @@ export default function DevTicketDetail() {
               )}
               {!guidance && !loadingGuidance && (
                 <p className="text-gray-400 text-sm">
-                  Click "Get AI Guidance" to analyze the codebase and get implementation hints.
+                  Click &quot;Get AI Guidance&quot; to analyze the codebase and get implementation hints.
                 </p>
               )}
             </CardContent>

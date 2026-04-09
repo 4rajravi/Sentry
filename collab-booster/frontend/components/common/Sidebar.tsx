@@ -36,8 +36,6 @@ const DEV_NAV: NavItem[] = [
 export function Sidebar({ role, fullName, onLogout }: SidebarProps) {
   const pathname = usePathname();
   const nav = role === "ba" ? BA_NAV : DEV_NAV;
-  const accentColor = role === "ba" ? "blue" : "purple";
-
   return (
     <aside className="w-64 min-h-screen bg-gray-900 text-white flex flex-col">
       <div className={clsx("px-6 py-5 border-b border-gray-700")}>

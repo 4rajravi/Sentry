@@ -63,10 +63,6 @@ services:
       - "3000:3000"
     depends_on:
       - backend
-    environment:
-      - NEXT_PUBLIC_API_URL=http://localhost:8000
-    volumes:
-      - ./frontend/src:/app/src
 
 volumes:
   pgdata:
