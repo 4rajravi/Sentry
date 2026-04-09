@@ -29,7 +29,7 @@ const DEV_NAV: NavItem[] = [
   { href: "/dev", label: "Home", icon: "home" },
   { href: "/dev/tickets", label: "My Tickets", icon: "ticket" },
   { href: "/dev/commits", label: "Commits", icon: "commit" },
-  { href: "/dev/catchup", label: "Vacation Catchup", icon: "time" },
+  { href: "/dev/catchup", label: "Timeline Brief", icon: "time" },
   { href: "/dev/onboard", label: "Onboarding", icon: "onboard" },
   { href: "/dev/chat", label: "Chat with Code", icon: "chat" },
 ];

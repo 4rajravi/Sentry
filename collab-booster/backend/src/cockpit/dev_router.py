@@ -16,6 +16,7 @@ from src.auth.models import User, UserRole
 from src.common.database import get_db
 from src.jira.models import JiraCommit
 from src.jira.service import get_ticket, list_tickets
+from src.jira.tldr import fetch_tldr_text
 from src.repo.cloner import get_commit_details, list_repo_commits
 from src.repo.context_service import resolve_runtime_repo_for_user
 
@@ -84,6 +85,8 @@ async def get_ticket_implementation_context(
         "description": ticket.description,
         "acceptance_criteria": ticket.acceptance_criteria,
         "affected_files": ticket.affected_files,
+        "technical_doc_link": ticket.technical_doc_link,
+        "technical_doc_excerpt": await fetch_tldr_text(ticket.technical_doc_link),
     }
     repo_path, repo_id = await resolve_runtime_repo_for_user(db, current_user.id)
     guidance = await run_implementation_guidance(
@@ -122,6 +125,22 @@ async def vacation_catchup(
         repo_path=repo_path,
         repo_id=repo_id,
     )
+    commits = list_repo_commits(
+        repo_path,
+        max_count=300,
+        since=body.from_date,
+        until=body.to_date,
+    )
+    period_commits = [
+        {
+            "id": c["short_sha"],
+            "message": c["message"],
+            "date": c["date"],
+            "by": c["author"],
+        }
+        for c in commits
+    ]
+    result["period_commits"] = period_commits
     return result
 
 
@@ -220,7 +239,23 @@ async def dev_chat(
     """Chat with the codebase as a developer."""
     question = body.question
     if body.ticket_id:
-        question = f"[Context: Working on ticket {body.ticket_id}] {question}"
+        ticket = await get_ticket(db, body.ticket_id)
+        if ticket:
+            tldr_excerpt = await fetch_tldr_text(ticket.technical_doc_link, max_chars=4000)
+            affected_files = ", ".join(ticket.affected_files or []) or "-"
+            question = (
+                f"[Ticket Context]\n"
+                f"Ticket ID: {ticket.id}\n"
+                f"Title: {ticket.title}\n"
+                f"Description: {ticket.description}\n"
+                f"Acceptance Criteria: {ticket.acceptance_criteria or '-'}\n"
+                f"Affected Files: {affected_files}\n"
+                f"Technical Doc Link: {ticket.technical_doc_link or '-'}\n"
+                f"Technical Doc TLDR Excerpt:\n{tldr_excerpt or '-'}\n\n"
+                f"[User Question]\n{question}"
+            )
+        else:
+            question = f"[Context: Working on ticket {body.ticket_id}] {question}"
     repo_path, repo_id = await resolve_runtime_repo_for_user(db, current_user.id)
     answer = await run_code_qa(
         question=question,

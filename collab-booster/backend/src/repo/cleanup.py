@@ -11,7 +11,7 @@ from src.repo.models import UserRepoConfig
 logger = logging.getLogger(__name__)
 
 CLONE_PREFIX = "collab_booster_repo_"
-CLONE_BASE_DIR = Path(os.environ.get("REPO_CLONE_BASE", "/app/repos")).resolve()
+CLONE_BASE_DIR = Path(os.environ.get("REPO_CLONE_BASE", "/tmp/collab_booster_repos")).resolve()
 
 
 def _is_managed_clone_path(path: str | None) -> bool:

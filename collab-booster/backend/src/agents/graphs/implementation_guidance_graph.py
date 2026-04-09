@@ -22,6 +22,9 @@ RULES:
 - Reference exact file paths and function names
 - Include formulas or algorithms when relevant
 - Reference existing patterns in the codebase the dev should follow
+- Stay strictly within the ticket scope and the provided technical document.
+- Do not invent unrelated systems (e.g., auth/login/JWT) unless explicitly requested by the ticket.
+- If evidence is missing, say "Not found in repo evidence" instead of guessing.
 """
 
 tools = [rag_search, read_file]
@@ -54,6 +57,8 @@ def create_implementation_guidance_graph():
                     f"Title: {ticket.get('title')}\n"
                     f"Description: {ticket.get('description')}\n"
                     f"Acceptance Criteria: {ticket.get('acceptance_criteria')}\n\n"
+                    f"Technical Doc Link: {ticket.get('technical_doc_link')}\n"
+                    f"Technical Doc Excerpt:\n{ticket.get('technical_doc_excerpt')}\n\n"
                     f"Search the codebase for relevant files and patterns."
                 )
             ),
@@ -75,7 +80,11 @@ def create_implementation_guidance_graph():
             + state["messages"]
             + [
                 HumanMessage(
-                    content=f"Now generate the implementation guidance for ticket {ticket.get('id')}."
+                    content=(
+                        f"Now generate the implementation guidance for ticket {ticket.get('id')}.\n"
+                        f"Ticket title: {ticket.get('title')}\n"
+                        f"Keep all guidance strictly aligned to this ticket and provided repo/doc evidence."
+                    )
                 )
             ]
         )

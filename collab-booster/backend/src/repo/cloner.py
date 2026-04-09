@@ -22,7 +22,7 @@ TEXT_EXTENSIONS = {
     ".ini", ".cfg", ".sh", ".html", ".css",
 }
 CLONE_PREFIX = "collab_booster_repo_"
-CLONE_BASE_DIR = os.environ.get("REPO_CLONE_BASE", "/app/repos")
+CLONE_BASE_DIR = os.environ.get("REPO_CLONE_BASE", "/tmp/collab_booster_repos")
 
 
 def _with_github_token(url: str, access_token: str) -> str:
@@ -95,18 +95,24 @@ def list_repo_commits(
     max_count: int = 200,
     query: str | None = None,
     file_path: str | None = None,
+    since: str | None = None,
+    until: str | None = None,
 ) -> list[dict]:
     """Return recent commits with optional text and file filters."""
     repo = git.Repo(repo_path)
     query_lc = query.lower().strip() if query else ""
+    file_path_lc = file_path.lower().strip() if file_path else ""
 
     commits = []
     iter_kwargs: dict = {"max_count": max_count}
-    if file_path:
-        iter_kwargs["paths"] = file_path
-
+    if since:
+        iter_kwargs["since"] = since
+    if until:
+        iter_kwargs["until"] = until
     for commit in repo.iter_commits(**iter_kwargs):
         files_changed = list(commit.stats.files.keys())
+        if file_path_lc and not any(file_path_lc in f.lower() for f in files_changed):
+            continue
         item = {
             "sha": commit.hexsha,
             "short_sha": commit.hexsha[:8],

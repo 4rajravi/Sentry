@@ -21,6 +21,7 @@ OUTPUT RULES:
 - Group changes by theme/ticket
 - Highlight what's most important for the dev to know right away
 - List any new tickets assigned to them
+- Prefer wording like "during this time" instead of "during your absence"
 """
 
 tools = [git_log, jira_query]
@@ -51,8 +52,8 @@ def create_vacation_catchup_graph():
             SystemMessage(content=SYSTEM),
             HumanMessage(
                 content=(
-                    f"The developer (user_id={user_id}) was away from {from_date} to {to_date}. "
-                    f"Please gather commit history and ticket changes for this period, "
+                    f"The developer (user_id={user_id}) selected period {from_date} to {to_date}. "
+                    f"Please gather commit history and ticket changes during this time, "
                     f"especially any tickets assigned to them."
                 )
             ),

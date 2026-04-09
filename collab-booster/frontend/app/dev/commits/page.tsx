@@ -39,16 +39,18 @@ export default function DevCommitsPage() {
     [commits, selectedSha]
   );
 
-  const loadCommits = async () => {
+  const loadCommits = async (next?: { query?: string; filePath?: string }) => {
     setLoadingList(true);
     setError("");
     setExplanation(null);
     setCommitDetail(null);
     setSelectedSha(null);
 
+    const queryValue = next?.query ?? search;
+    const filePathValue = next?.filePath ?? fileFilter;
     const params = new URLSearchParams();
-    if (search.trim()) params.set("q", search.trim());
-    if (fileFilter.trim()) params.set("file_path", fileFilter.trim());
+    if (queryValue.trim()) params.set("q", queryValue.trim());
+    if (filePathValue.trim()) params.set("file_path", filePathValue.trim());
     params.set("limit", "200");
 
     try {
@@ -126,7 +128,13 @@ export default function DevCommitsPage() {
 
       <Card className="mb-4">
         <CardContent className="py-4">
-          <div className="grid gap-3 md:grid-cols-[1fr_1fr_auto_auto]">
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              void loadCommits();
+            }}
+            className="grid gap-3 md:grid-cols-[1fr_1fr_auto_auto]"
+          >
             <input
               type="text"
               value={search}
@@ -141,21 +149,22 @@ export default function DevCommitsPage() {
               placeholder="Filter by file path (e.g. src/routes.py)"
               className="w-full rounded-lg border border-zinc-300 bg-white px-4 py-2.5 text-sm text-zinc-900 placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-red-500/50"
             />
-            <Button onClick={loadCommits} disabled={loadingList || loadingDetail}>
+            <Button type="submit" disabled={loadingList || loadingDetail}>
               {loadingList ? "Searching..." : "Search"}
             </Button>
             <Button
+              type="button"
               variant="secondary"
               onClick={() => {
                 setSearch("");
                 setFileFilter("");
-                void loadCommits();
+                void loadCommits({ query: "", filePath: "" });
               }}
               disabled={loadingList || loadingDetail}
             >
               Reset
             </Button>
-          </div>
+          </form>
         </CardContent>
       </Card>
 

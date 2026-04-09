@@ -13,6 +13,12 @@ interface CatchupSummary {
   new_tickets_assigned: string[];
   key_code_changes: string[];
   narrative: string;
+  period_commits?: Array<{
+    id: string;
+    message: string;
+    date: string | null;
+    by: string;
+  }>;
 }
 
 export default function VacationCatchup() {
@@ -39,8 +45,8 @@ export default function VacationCatchup() {
   return (
     <div className="page-wrap max-w-4xl">
       <p className="section-label mb-2">Developer</p>
-      <h1 className="text-3xl font-semibold text-zinc-900">Catchup Summary</h1>
-      <p className="mb-6 mt-2 text-zinc-600">Select your absence period and generate a concise update.</p>
+      <h1 className="text-3xl font-semibold text-zinc-900">Timeline Brief</h1>
+      <p className="mb-6 mt-2 text-zinc-600">Select a period and generate a concise timeline update.</p>
 
       <Card className="mb-6">
         <CardContent className="py-5">
@@ -64,7 +70,7 @@ export default function VacationCatchup() {
               />
             </div>
             <Button onClick={handleCatchup} disabled={loading || fromDate.length === 0}>
-              {loading ? "Summarizing..." : "Generate Catchup"}
+              {loading ? "Generating..." : "Generate Timeline Brief"}
             </Button>
           </div>
         </CardContent>
@@ -128,17 +134,22 @@ export default function VacationCatchup() {
             </Card>
           )}
 
-          {summary.key_code_changes.length > 0 && (
+          {summary.period_commits && summary.period_commits.length > 0 && (
             <Card>
               <CardHeader>
-                <h2 className="text-sm font-semibold uppercase tracking-[0.16em] text-zinc-700">Key Code Changes</h2>
+                <h2 className="text-sm font-semibold uppercase tracking-[0.16em] text-zinc-700">Commits During This Time</h2>
               </CardHeader>
               <CardContent>
                 <ul className="space-y-1">
-                  {summary.key_code_changes.map((item, i) => (
-                    <li key={i} className="text-sm font-mono text-zinc-700">- {item}</li>
+                  {summary.period_commits.map((commit, i) => (
+                    <li key={`${commit.id}-${i}`} className="text-sm text-zinc-700">
+                      <span className="font-mono text-xs text-red-700">{commit.id}</span>{" "}
+                      - {commit.message}{" "}
+                      <span className="text-zinc-500">| {commit.date ? new Date(commit.date).toLocaleString() : "-"} | by {commit.by}</span>
+                    </li>
                   ))}
                 </ul>
+                <p className="mt-3 text-xs text-zinc-500">For full diff and deep details, open Commit Explorer.</p>
               </CardContent>
             </Card>
           )}

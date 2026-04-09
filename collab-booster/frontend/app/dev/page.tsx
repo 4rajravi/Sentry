@@ -28,7 +28,7 @@ const ACTIONS = [
   {
     href: "/dev/catchup",
     code: "04",
-    title: "Catchup summary",
+    title: "Timeline Brief",
     description: "Review updates and decisions made while you were away.",
   },
   {
