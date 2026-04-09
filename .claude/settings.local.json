@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(uv sync:*)",
+      "Bash(pip3 --version)",
+      "Bash(brew install:*)",
+      "Bash(curl -LsSf https://astral.sh/uv/install.sh)",
+      "Bash(sh)",
+      "Bash(/opt/homebrew/bin/uv sync:*)",
+      "Bash(/opt/homebrew/bin/uv run:*)",
+      "Bash(npx create-next-app@14 . --typescript --tailwind --eslint --app --no-src-dir --import-alias \"@/*\" --yes)",
+      "Bash(npm install:*)",
+      "Bash(wc -l /Users/rajravi/Sentry/collab-booster/seed-data/loan-calculator/src/*.py)",
+      "Bash(git -C /Users/rajravi/Sentry/collab-booster/seed-data/loan-calculator log --oneline)",
+      "Bash(git -C /Users/rajravi/Sentry/collab-booster/seed-data/loan-calculator status --short)",
+      "Bash(git -C /Users/rajravi/Sentry/collab-booster/seed-data/loan-calculator init)",
+      "Bash(git -C /Users/rajravi/Sentry/collab-booster/seed-data/loan-calculator config user.email \"alice@example.com\")",
+      "Bash(git -C /Users/rajravi/Sentry/collab-booster/seed-data/loan-calculator config user.name \"Alice Schneider\")",
+      "Bash(bash /tmp/make_commits.sh)"
+    ]
+  }
+}
