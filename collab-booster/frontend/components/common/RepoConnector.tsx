@@ -19,6 +19,18 @@ interface IngestResponse {
   active_repo_url: string | null;
 }
 
+function formatRepoLabel(url: string) {
+  try {
+    const parsed = new URL(url);
+    if (parsed.hostname === "github.com") {
+      return parsed.pathname.replace(/^\/+/, "").replace(/\/+$/, "");
+    }
+    return `${parsed.hostname}${parsed.pathname}`;
+  } catch {
+    return url;
+  }
+}
+
 export function RepoConnector() {
   const [repoUrl, setRepoUrl] = useState("");
   const [loading, setLoading] = useState(false);
@@ -169,7 +181,7 @@ export function RepoConnector() {
 
         {context?.active_repo_url && (
           <p className="mt-3 text-sm text-zinc-700">
-            Active repo: <span className="font-medium">{context.active_repo_url}</span>
+            Active repo: <span className="font-medium">{formatRepoLabel(context.active_repo_url)}</span>
           </p>
         )}
 

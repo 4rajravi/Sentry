@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { Fragment } from "react";
 import { clsx } from "clsx";
 import type { ChatMessage } from "@/types/chat";
 import { LoadingSpinner } from "@/components/common/LoadingSpinner";
@@ -11,6 +12,26 @@ interface ChatWindowProps {
   onSend: (message: string) => void;
   placeholder?: string;
   role?: "ba" | "dev";
+}
+
+function renderBoldLine(line: string) {
+  const parts = line.split(/(\*\*.*?\*\*)/g);
+  return parts.map((part, idx) => {
+    if (part.startsWith("**") && part.endsWith("**") && part.length >= 4) {
+      return <strong key={`b-${idx}`}>{part.slice(2, -2)}</strong>;
+    }
+    return <Fragment key={`t-${idx}`}>{part}</Fragment>;
+  });
+}
+
+function renderMessageContent(content: string) {
+  const lines = content.split("\n");
+  return lines.map((line, idx) => (
+    <Fragment key={`l-${idx}`}>
+      {renderBoldLine(line)}
+      {idx < lines.length - 1 && <br />}
+    </Fragment>
+  ));
 }
 
 export function ChatWindow({
@@ -59,7 +80,9 @@ export function ChatWindow({
                   : "border border-zinc-200 bg-zinc-50 text-zinc-800"
               )}
             >
-              <pre className="whitespace-pre-wrap font-sans">{msg.content}</pre>
+              <div className="whitespace-pre-wrap font-sans">
+                {renderMessageContent(msg.content)}
+              </div>
             </div>
           </div>
         ))}

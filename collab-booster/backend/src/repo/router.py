@@ -14,6 +14,7 @@ from src.auth.models import User
 from src.common.database import get_db
 from src.common.redis import get_redis
 from src.config import settings
+from src.repo.cleanup import cleanup_repo_for_user
 from src.repo.cloner import clone_repo
 from src.repo.context_service import build_repo_id, get_or_create_repo_config
 from src.repo.schemas import (
@@ -24,6 +25,7 @@ from src.repo.schemas import (
     RepoContextResponse,
 )
 from src.repo.service import ingest_repo
+from src.search.service import rebuild_bm25_from_qdrant
 
 router = APIRouter(prefix="/repo", tags=["repo"])
 
@@ -155,9 +157,24 @@ async def github_logout(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    config = await get_or_create_repo_config(db, current_user.id)
-    config.github_access_token = None
-    await db.flush()
+    had_active_repo = await cleanup_repo_for_user(
+        db,
+        user_id=current_user.id,
+        clear_github_token=True,
+    )
+    if had_active_repo:
+        await rebuild_bm25_from_qdrant()
+    return {"ok": True}
+
+
+@router.post("/session/logout")
+async def session_logout(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    had_active_repo = await cleanup_repo_for_user(db, user_id=current_user.id)
+    if had_active_repo:
+        await rebuild_bm25_from_qdrant()
     return {"ok": True}
 
 

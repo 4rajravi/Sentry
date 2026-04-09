@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getCurrentUser, clearAuth } from "@/lib/auth";
+import { api } from "@/lib/api";
 import type { CurrentUser } from "@/types/auth";
 
 export function useAuth(requiredRole?: "business_analyst" | "developer") {
@@ -25,8 +26,16 @@ export function useAuth(requiredRole?: "business_analyst" | "developer") {
   }, [requiredRole, router]);
 
   const logout = () => {
-    clearAuth();
-    router.replace("/login");
+    void (async () => {
+      try {
+        await api.post<{ ok: boolean }>("/repo/session/logout", {});
+      } catch {
+        // Best effort cleanup; always continue local logout.
+      } finally {
+        clearAuth();
+        router.replace("/login");
+      }
+    })();
   };
 
   return { user, loading, logout };

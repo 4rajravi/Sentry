@@ -9,11 +9,8 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
 const DEMO_USERS = [
-  { username: "ba_sarah", label: "Sarah", role: "Business Analyst" },
   { username: "ba_tom", label: "Tom", role: "Business Analyst" },
   { username: "dev_alice", label: "Alice", role: "Developer" },
-  { username: "dev_bob", label: "Bob", role: "Developer" },
-  { username: "dev_newbie", label: "Chris", role: "Developer" },
 ];
 
 export default function LoginPage() {

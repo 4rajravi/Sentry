@@ -1,5 +1,5 @@
 """Code Q&A agent — answers questions about the codebase for both BA and dev roles."""
-from langchain_core.messages import HumanMessage, SystemMessage
+from langchain_core.messages import HumanMessage, SystemMessage, ToolMessage
 from langchain_openai import ChatOpenAI
 from langgraph.graph import END, StateGraph
 from langgraph.prebuilt import ToolNode
@@ -17,6 +17,7 @@ RULES:
 - Always cite which part of the system you're referring to (file name is fine, no line numbers needed for BA)
 - Focus on what the system does, not how it's implemented
 - Keep answers concise and actionable
+- Ground every answer in repository evidence from tools; do not answer from generic software assumptions
 """
 
 DEV_SYSTEM = """You are an expert assistant helping a Developer understand and work with a codebase.
@@ -27,6 +28,7 @@ RULES:
 - Explain architectural patterns and data flow
 - Be specific about implementation details
 - Suggest next steps when relevant
+- Ground every answer in repository evidence from tools; do not answer from generic software assumptions
 """
 
 tools = [rag_search, read_file, list_files]
@@ -38,6 +40,11 @@ def create_code_qa_graph():
         api_key=settings.openai_api_key,
         temperature=0,
     ).bind_tools(tools)
+    llm_first = ChatOpenAI(
+        model=settings.smart_model,
+        api_key=settings.openai_api_key,
+        temperature=0,
+    ).bind_tools(tools, tool_choice="required")
 
     tool_node = ToolNode(tools)
 
@@ -46,7 +53,9 @@ def create_code_qa_graph():
         system_msg = BA_SYSTEM if role == "business_analyst" else DEV_SYSTEM
 
         messages = [SystemMessage(content=system_msg)] + state["messages"]
-        response = llm.invoke(messages)
+        has_tool_results = any(isinstance(m, ToolMessage) for m in state["messages"])
+        runner = llm if has_tool_results else llm_first
+        response = runner.invoke(messages)
         return {"messages": [response]}
 
     def should_continue(state: AgentState):

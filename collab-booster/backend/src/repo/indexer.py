@@ -1,6 +1,8 @@
 """Writes chunks to Qdrant vector store and maintains BM25 index."""
 import hashlib
+import uuid
 
+from qdrant_client.http.exceptions import UnexpectedResponse
 from qdrant_client.models import (
     Distance,
     FieldCondition,
@@ -31,16 +33,27 @@ async def ensure_collection():
 
 async def clear_repo_chunks(user_id: str, repo_id: str):
     client = get_qdrant()
+    collections = await client.get_collections()
+    names = [c.name for c in collections.collections]
+    if settings.qdrant_collection not in names:
+        return
+
     filt = Filter(
         must=[
             FieldCondition(key="user_id", match=MatchValue(value=user_id)),
             FieldCondition(key="repo_id", match=MatchValue(value=repo_id)),
         ]
     )
-    await client.delete(
-        collection_name=settings.qdrant_collection,
-        points_selector=FilterSelector(filter=filt),
-    )
+    try:
+        await client.delete(
+            collection_name=settings.qdrant_collection,
+            points_selector=FilterSelector(filter=filt),
+        )
+    except UnexpectedResponse as e:
+        # Fresh environments may not have the collection yet.
+        if "doesn't exist" in str(e):
+            return
+        raise
 
 
 async def index_chunks(
@@ -61,7 +74,8 @@ async def index_chunks(
             f"{repo_id}|{chunk.metadata.file_path}|{chunk.metadata.chunk_type}|"
             f"{chunk.metadata.start_line}|{chunk.metadata.end_line}|{chunk.body[:200]}"
         )
-        point_id = hashlib.sha1(source_id.encode("utf-8")).hexdigest()
+        source_hash = hashlib.sha1(source_id.encode("utf-8")).hexdigest()
+        point_id = str(uuid.uuid5(uuid.NAMESPACE_URL, source_hash))
         payload = {
             "content": chunk.content,
             "context_header": chunk.context_header,

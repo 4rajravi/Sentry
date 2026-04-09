@@ -12,6 +12,7 @@ from src.common.database import engine
 from src.common.database import Base
 from src.jira.router import router as jira_router
 from src.repo.router import router as repo_router
+from src.repo.cleanup import cleanup_all_repo_state
 from src.search.router import router as search_router
 
 logging.basicConfig(level=logging.INFO)
@@ -43,7 +44,17 @@ async def lifespan(app: FastAPI):
         logger.warning(f"BM25 rebuild failed (Qdrant may be empty): {e}")
 
     yield
-    # Shutdown — nothing needed
+    # Shutdown cleanup: remove cloned repos and indexed chunks.
+    try:
+        from src.common.database import AsyncSessionLocal
+        async with AsyncSessionLocal() as db:
+            had_active_repo = await cleanup_all_repo_state(db)
+            if had_active_repo:
+                from src.search.service import rebuild_bm25_from_qdrant
+                await rebuild_bm25_from_qdrant()
+                logger.info("Shutdown cleanup completed: cloned repos and indexed chunks removed")
+    except Exception as e:
+        logger.warning(f"Shutdown cleanup failed: {e}")
 
 
 app = FastAPI(
@@ -82,10 +93,7 @@ async def root():
         "docs": "/docs",
         "roles": ["business_analyst", "developer"],
         "demo_users": {
-            "ba_sarah": "demo1234",
             "ba_tom": "demo1234",
             "dev_alice": "demo1234",
-            "dev_bob": "demo1234",
-            "dev_newbie": "demo1234",
         },
     }
