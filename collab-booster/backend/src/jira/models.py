@@ -41,6 +41,7 @@ class JiraTicket(Base):
     assignee_id: Mapped[str | None] = mapped_column(ForeignKey("users.id"), nullable=True)
     reporter_id: Mapped[str] = mapped_column(ForeignKey("users.id"))
     acceptance_criteria: Mapped[str | None] = mapped_column(Text, nullable=True)
+    technical_doc_link: Mapped[str | None] = mapped_column(Text, nullable=True)
     affected_files: Mapped[dict | None] = mapped_column(JSON, nullable=True)
     due_date: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)

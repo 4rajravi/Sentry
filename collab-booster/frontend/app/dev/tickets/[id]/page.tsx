@@ -68,6 +68,9 @@ export default function DevTicketDetail() {
           </Badge>
         </div>
         <h1 className="text-3xl font-semibold text-zinc-900">{ticket.title}</h1>
+        <p className="mt-1 text-sm text-zinc-600">
+          Assigned to: <span className="font-semibold text-zinc-800">{ticket.assignee_name || ticket.assignee_id || "-"}</span>
+        </p>
       </div>
 
       <div className="grid gap-4 lg:grid-cols-3">
@@ -78,6 +81,19 @@ export default function DevTicketDetail() {
             </CardHeader>
             <CardContent>
               <p className="leading-relaxed text-zinc-700">{ticket.description}</p>
+              {ticket.technical_doc_link && (
+                <p className="mt-3 text-sm text-zinc-700">
+                  Technical document:{" "}
+                  <a
+                    href={ticket.technical_doc_link}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="font-semibold text-red-700 underline underline-offset-2"
+                  >
+                    Open TRS
+                  </a>
+                </p>
+              )}
               {ticket.acceptance_criteria && (
                 <div className="mt-4 border-t border-zinc-200 pt-4">
                   <p className="mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-zinc-500">Acceptance Criteria</p>

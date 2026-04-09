@@ -6,6 +6,7 @@ from langgraph.prebuilt import ToolNode
 
 from src.agents.state import AgentState
 from src.agents.tools.file_tool import list_files, read_file
+from src.agents.tools.git_tool import git_log, git_show
 from src.agents.tools.rag_tool import rag_search
 from src.config import settings
 
@@ -29,9 +30,10 @@ RULES:
 - Be specific about implementation details
 - Suggest next steps when relevant
 - Ground every answer in repository evidence from tools; do not answer from generic software assumptions
+- For commit/date/history questions, call git tools and answer directly with the actual commit info
 """
 
-tools = [rag_search, read_file, list_files]
+tools = [rag_search, read_file, list_files, git_log, git_show]
 
 
 def create_code_qa_graph():

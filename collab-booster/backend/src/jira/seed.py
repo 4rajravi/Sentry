@@ -1,13 +1,13 @@
-"""Seed the database with demo users and Jira tickets for the loan calculator project."""
-import uuid
-from datetime import datetime
-
+"""Seed the database with Jira-like demo data from a fixed sheet."""
+from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth.models import User, UserRole
 from src.auth.service import hash_password
 from src.jira.models import JiraCommit, JiraTicket, TicketPriority, TicketStatus, TicketType
 
+
+TRS_DOC_LINK = "https://docs.google.com/document/d/10uBYL5MLkUvjHnA8DsRA-fW5SGudp1Sz4xuINywsGOo/edit?tab=t.0"
 
 USERS = [
     {
@@ -26,239 +26,200 @@ USERS = [
         "password": "demo1234",
         "role": UserRole.DEVELOPER,
     },
+    {
+        "id": "dev-peter-004",
+        "username": "dev_peter",
+        "email": "peter@example.com",
+        "full_name": "Peter Dund",
+        "password": "demo1234",
+        "role": UserRole.DEVELOPER,
+    },
+    {
+        "id": "dev-skleinke-005",
+        "username": "skleinke",
+        "email": "skleinke@example.com",
+        "full_name": "S. Kleinke",
+        "password": "demo1234",
+        "role": UserRole.DEVELOPER,
+    },
 ]
 
 TICKETS = [
-    # Sprint 1 — Done
     {
-        "id": "JIRA-1",
-        "title": "Basic loan monthly payment calculator",
-        "description": "As a borrower, I want to enter principal, interest rate, and loan term to see my monthly payment amount.",
+        "id": "JIRA-101",
+        "title": "Testing flow cleanup and comment removal",
+        "description": (
+            "Task description: improve calculator test quality and remove unnecessary comments. "
+            "This mirrors the TRS testing section and cleanup acceptance."
+        ),
         "status": TicketStatus.DONE,
-        "ticket_type": TicketType.STORY,
+        "ticket_type": TicketType.TASK,
         "priority": TicketPriority.HIGH,
         "story_points": 5,
         "sprint": "Sprint 1",
-        "assignee_id": "dev-alice-003",
+        "assignee_id": "dev-skleinke-005",
         "reporter_id": "ba-tom-002",
-        "acceptance_criteria": "- Monthly payment calculated correctly\n- Input validation for min/max values\n- Error shown for invalid inputs",
-        "affected_files": ["src/calculator.py", "src/models.py"],
+        "technical_doc_link": TRS_DOC_LINK,
+        "acceptance_criteria": (
+            "- Tests pass for core calculator flows\n"
+            "- Unnecessary comments are removed\n"
+            "- Repo baseline files are cleaned"
+        ),
+        "affected_files": ["tests/test_calculator.py", ".gitignore"],
     },
     {
-        "id": "JIRA-2",
-        "title": "Add input validation for loan parameters",
-        "description": "As the system, I need to validate that loan parameters are within acceptable ranges.",
+        "id": "JIRA-102",
+        "title": "Calculator logic update and baseline docs sync",
+        "description": (
+            "Task description: update calculator implementation and align baseline docs/files. "
+            "Last two legacy commits are grouped here instead of separate tasks."
+        ),
         "status": TicketStatus.DONE,
-        "ticket_type": TicketType.TASK,
+        "ticket_type": TicketType.STORY,
         "priority": TicketPriority.HIGH,
-        "story_points": 3,
+        "story_points": 8,
         "sprint": "Sprint 1",
-        "assignee_id": "dev-alice-003",
+        "assignee_id": "dev-peter-004",
         "reporter_id": "ba-tom-002",
-        "acceptance_criteria": "- Principal between 1000 and 10,000,000\n- Rate between 0.01% and 100%\n- Term between 1 and 360 months",
-        "affected_files": ["src/validators.py"],
+        "technical_doc_link": TRS_DOC_LINK,
+        "acceptance_criteria": (
+            "- Calculator implementation updated\n"
+            "- README and base calculator file changes linked to same task\n"
+            "- Change log traceable to commit IDs"
+        ),
+        "affected_files": ["calculator.py", "README.md"],
     },
     {
-        "id": "JIRA-3",
-        "title": "Add unit tests for payment calculator",
-        "description": "As a developer, I want comprehensive tests to ensure calculation accuracy.",
-        "status": TicketStatus.DONE,
-        "ticket_type": TicketType.TASK,
-        "priority": TicketPriority.MEDIUM,
-        "story_points": 3,
-        "sprint": "Sprint 1",
-        "assignee_id": "dev-alice-003",
-        "reporter_id": "ba-tom-002",
-        "acceptance_criteria": "- 90%+ test coverage\n- Edge cases tested\n- All tests pass in CI",
-        "affected_files": ["tests/test_calculator.py"],
-    },
-    # Sprint 2 — Mostly done
-    {
-        "id": "JIRA-4",
-        "title": "Create REST API endpoint for loan calculation",
-        "description": "As a frontend developer, I want a REST API endpoint to calculate loan payments.",
-        "status": TicketStatus.DONE,
+        "id": "JIRA-103",
+        "title": "Add loan term calculation feature",
+        "description": (
+            "As a borrower, I want to enter my target monthly payment and get the "
+            "estimated repayment duration so I can plan my finances."
+        ),
+        "status": TicketStatus.TODO,
         "ticket_type": TicketType.STORY,
         "priority": TicketPriority.HIGH,
         "story_points": 5,
         "sprint": "Sprint 2",
         "assignee_id": "dev-alice-003",
         "reporter_id": "ba-tom-002",
-        "acceptance_criteria": "- POST /api/loan/calculate endpoint\n- Returns monthly_payment, total_payment, total_interest\n- Swagger docs generated",
-        "affected_files": ["src/routes.py", "src/schemas.py"],
-    },
-    {
-        "id": "JIRA-5",
-        "title": "Add loan term calculation feature",
-        "description": "As a borrower, I want to enter my desired monthly payment to see how many months I need to repay the loan.",
-        "status": TicketStatus.IN_PROGRESS,
-        "ticket_type": TicketType.STORY,
-        "priority": TicketPriority.HIGH,
-        "story_points": 5,
-        "sprint": "Sprint 3",
-        "assignee_id": "dev-alice-003",
-        "reporter_id": "ba-tom-002",
-        "acceptance_criteria": "- Formula: n = -log(1 - Pr/M) / log(1+r)\n- Validate M > P*r\n- POST /api/loan/term endpoint\n- Returns term_months and total_cost",
-        "affected_files": ["src/calculator.py", "src/routes.py", "tests/test_term_calc.py"],
-    },
-    {
-        "id": "JIRA-6",
-        "title": "Add amortization schedule generation",
-        "description": "As a borrower, I want to see a month-by-month breakdown of principal vs interest payments.",
-        "status": TicketStatus.IN_REVIEW,
-        "ticket_type": TicketType.STORY,
-        "priority": TicketPriority.MEDIUM,
-        "story_points": 8,
-        "sprint": "Sprint 3",
-        "assignee_id": "dev-alice-003",
-        "reporter_id": "ba-tom-002",
-        "acceptance_criteria": "- Returns array of {month, principal, interest, balance}\n- Handles floating point correctly\n- Exportable to CSV",
-        "affected_files": ["src/calculator.py", "src/schemas.py", "src/routes.py"],
-    },
-    {
-        "id": "JIRA-7",
-        "title": "Input validation for loan term calculation",
-        "description": "As the system, I need to validate that the desired monthly payment exceeds the monthly interest amount.",
-        "status": TicketStatus.TODO,
-        "ticket_type": TicketType.TASK,
-        "priority": TicketPriority.HIGH,
-        "story_points": 3,
-        "sprint": "Sprint 3",
-        "assignee_id": "dev-alice-003",
-        "reporter_id": "ba-tom-002",
-        "acceptance_criteria": "- Reject if M <= P*r (payment too low)\n- Clear error message explaining minimum payment\n- Return 422 with validation details",
-        "affected_files": ["src/validators.py", "src/routes.py"],
-    },
-    {
-        "id": "JIRA-8",
-        "title": "Add integration tests for loan term endpoint",
-        "description": "As a developer, I want integration tests for the loan term calculation endpoint.",
-        "status": TicketStatus.TODO,
-        "ticket_type": TicketType.TASK,
-        "priority": TicketPriority.MEDIUM,
-        "story_points": 2,
-        "sprint": "Sprint 3",
-        "assignee_id": "dev-alice-003",
-        "reporter_id": "ba-tom-002",
-        "acceptance_criteria": "- Happy path test\n- Edge case: minimum payment\n- Edge case: 0% interest\n- Validation error tests",
-        "affected_files": ["tests/test_routes.py"],
-    },
-    {
-        "id": "JIRA-9",
-        "title": "Add compound interest calculation option",
-        "description": "As a borrower, I want the option to see calculations with compound interest (daily/monthly/annual).",
-        "status": TicketStatus.TODO,
-        "ticket_type": TicketType.STORY,
-        "priority": TicketPriority.MEDIUM,
-        "story_points": 5,
-        "sprint": "Sprint 4",
-        "assignee_id": "dev-alice-003",
-        "reporter_id": "ba-tom-002",
-        "acceptance_criteria": "- Support daily, monthly, annual compounding\n- Default to monthly\n- Show difference vs simple interest\n- Add compound_frequency param to API",
-        "affected_files": ["src/calculator.py", "src/schemas.py"],
-    },
-    {
-        "id": "JIRA-10",
-        "title": "Add early repayment calculator",
-        "description": "As a borrower, I want to see how much I save by making extra monthly payments.",
-        "status": TicketStatus.TODO,
-        "ticket_type": TicketType.STORY,
-        "priority": TicketPriority.LOW,
-        "story_points": 8,
-        "sprint": "Sprint 4",
-        "assignee_id": "dev-alice-003",
-        "reporter_id": "ba-tom-002",
-        "acceptance_criteria": "- Input: extra monthly payment amount\n- Output: months saved, interest saved\n- Compare with/without extra payment schedule",
-        "affected_files": ["src/calculator.py", "src/routes.py", "src/schemas.py"],
+        "technical_doc_link": TRS_DOC_LINK,
+        "acceptance_criteria": (
+            "- Add loan term calculation based on principal, interest rate, and target monthly payment\n"
+            "- Validate target payment is greater than monthly interest portion\n"
+            "- Return estimated months and total repayment amount\n"
+            "- Add tests for normal case and invalid payment edge case"
+        ),
+        "affected_files": ["calculator.py", "tests/test_calculator.py", "README.md"],
     },
 ]
 
 COMMITS = [
     {
-        "ticket_id": "JIRA-1",
-        "commit_sha": "a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2",
-        "commit_message": "feat(JIRA-1): implement basic monthly payment calculation",
-        "author": "dev_alice",
-        "files_changed": ["src/calculator.py", "src/models.py"],
-        "diff_summary": "Added LoanCalculator class with calculate_monthly_payment method using amortization formula",
+        "ticket_id": "JIRA-101",
+        "commit_sha": "503622062f6cab824397d7aa01bb04f8127ee1c6",
+        "commit_message": "Merge pull request #3 from skleinke/Delete_Comments Update test_calculator.py by deleting unnecessary comments",
+        "author": "skleinke",
+        "files_changed": ["tests/test_calculator.py"],
+        "diff_summary": "Merged cleanup changes removing unnecessary comments in test_calculator.py",
     },
     {
-        "ticket_id": "JIRA-1",
-        "commit_sha": "b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3",
-        "commit_message": "feat(JIRA-1): add Pydantic models for loan input/output",
-        "author": "dev_alice",
-        "files_changed": ["src/models.py", "src/schemas.py"],
-        "diff_summary": "Added LoanRequest and LoanResponse Pydantic schemas",
+        "ticket_id": "JIRA-101",
+        "commit_sha": "842f7b516daee453aa180c56bd0d1498683cab00",
+        "commit_message": "Update test_calculator.py",
+        "author": "skleinke",
+        "files_changed": ["tests/test_calculator.py"],
+        "diff_summary": "Updated calculator tests.",
     },
     {
-        "ticket_id": "JIRA-2",
-        "commit_sha": "c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4",
-        "commit_message": "feat(JIRA-2): add input validation for loan parameters",
-        "author": "dev_alice",
-        "files_changed": ["src/validators.py"],
-        "diff_summary": "Added LoanValidator class with range checks for principal, rate, and term",
+        "ticket_id": "JIRA-101",
+        "commit_sha": "dd35bec856508c92b616d4a6631013d3b97d7c37",
+        "commit_message": "Merge pull request #2 from skleinke/testing-feature Added feature for testing the calculator",
+        "author": "skleinke",
+        "files_changed": ["tests/test_calculator.py"],
+        "diff_summary": "Merged testing feature branch.",
     },
     {
-        "ticket_id": "JIRA-4",
-        "commit_sha": "d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5",
-        "commit_message": "feat(JIRA-4): add POST /api/loan/calculate endpoint",
-        "author": "dev_alice",
-        "files_changed": ["src/routes.py", "src/main.py"],
-        "diff_summary": "Added FastAPI router with calculate endpoint, integrated with LoanCalculator",
+        "ticket_id": "JIRA-101",
+        "commit_sha": "db28722821159f8cbbac3754ba0f86106b8238f1",
+        "commit_message": "Added gitignore file",
+        "author": "skleinke",
+        "files_changed": [".gitignore"],
+        "diff_summary": "Added ignore rules.",
     },
     {
-        "ticket_id": "JIRA-5",
-        "commit_sha": "e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6",
-        "commit_message": "feat(JIRA-5): implement loan term calculation formula",
-        "author": "dev_alice",
-        "files_changed": ["src/calculator.py"],
-        "diff_summary": "Added calculate_loan_term method: n = -log(1 - P*r/M) / log(1+r)",
+        "ticket_id": "JIRA-101",
+        "commit_sha": "f9b7b68095aa6ade5c6e255693f95f4751383b4d",
+        "commit_message": "Added feature for testing the calculator",
+        "author": "skleinke",
+        "files_changed": ["tests/test_calculator.py"],
+        "diff_summary": "Introduced testing feature changes.",
     },
     {
-        "ticket_id": "JIRA-5",
-        "commit_sha": "f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1",
-        "commit_message": "feat(JIRA-5): add POST /api/loan/term API endpoint",
-        "author": "dev_alice",
-        "files_changed": ["src/routes.py", "src/schemas.py"],
-        "diff_summary": "Added LoanTermRequest/Response schemas and term calculation endpoint",
+        "ticket_id": "JIRA-101",
+        "commit_sha": "6c423f9080b8ac49e461602aedb77a87ee0c6ab0",
+        "commit_message": "Initial commit",
+        "author": "skleinke",
+        "files_changed": ["README.md", "calculator.py"],
+        "diff_summary": "Initial repository setup.",
     },
     {
-        "ticket_id": "JIRA-6",
-        "commit_sha": "a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6b2b3",
-        "commit_message": "feat(JIRA-6): implement amortization schedule generator",
-        "author": "dev_alice",
-        "files_changed": ["src/calculator.py", "src/schemas.py"],
-        "diff_summary": "Added generate_amortization_schedule method returning monthly breakdown",
+        "ticket_id": "JIRA-102",
+        "commit_sha": "ed702f9d08943e32d689ba9b1c1a1de76c4ca377",
+        "commit_message": "Update calculator.py",
+        "author": "peterdund",
+        "files_changed": ["calculator.py"],
+        "diff_summary": "Updated calculator logic.",
+    },
+    {
+        "ticket_id": "JIRA-102",
+        "commit_sha": "5ebb8b265d1f38507ede13c167ea6f11b3ce66fb",
+        "commit_message": "Update README.md",
+        "author": "peterdund",
+        "files_changed": ["README.md"],
+        "diff_summary": "README updates grouped under same task.",
+    },
+    {
+        "ticket_id": "JIRA-102",
+        "commit_sha": "87b038bfa655c0d2c5b455c29e2d1139d603a669",
+        "commit_message": "Create calculator.py creates the initial calculator",
+        "author": "peterdund",
+        "files_changed": ["calculator.py"],
+        "diff_summary": "Initial calculator creation grouped under same task.",
     },
 ]
 
 
 async def seed_database(db: AsyncSession):
-    """Idempotent seed — skips existing records."""
-    from sqlalchemy import select
-
-    # Seed users
+    """Deterministic seed based on a fixed Jira-mimic sheet."""
+    # Upsert users.
     for u in USERS:
         existing = await db.execute(select(User).where(User.id == u["id"]))
-        if existing.scalar_one_or_none():
-            continue
-        user = User(
-            id=u["id"],
-            username=u["username"],
-            email=u["email"],
-            full_name=u["full_name"],
-            hashed_password=hash_password(u["password"]),
-            role=u["role"],
-        )
-        db.add(user)
+        user = existing.scalar_one_or_none()
+        if user is None:
+            user = User(
+                id=u["id"],
+                username=u["username"],
+                email=u["email"],
+                full_name=u["full_name"],
+                hashed_password=hash_password(u["password"]),
+                role=u["role"],
+            )
+            db.add(user)
+        else:
+            user.username = u["username"]
+            user.email = u["email"]
+            user.full_name = u["full_name"]
+            user.role = u["role"]
 
     await db.flush()
 
-    # Seed tickets
+    # Replace Jira tickets/commits with sheet values.
+    await db.execute(delete(JiraCommit))
+    await db.execute(delete(JiraTicket))
+    await db.flush()
+
     for t in TICKETS:
-        existing = await db.execute(select(JiraTicket).where(JiraTicket.id == t["id"]))
-        if existing.scalar_one_or_none():
-            continue
         ticket = JiraTicket(
             id=t["id"],
             title=t["title"],
@@ -271,19 +232,14 @@ async def seed_database(db: AsyncSession):
             assignee_id=t.get("assignee_id"),
             reporter_id=t["reporter_id"],
             acceptance_criteria=t.get("acceptance_criteria"),
+            technical_doc_link=t.get("technical_doc_link"),
             affected_files=t.get("affected_files", []),
         )
         db.add(ticket)
 
     await db.flush()
 
-    # Seed commits
     for c in COMMITS:
-        existing = await db.execute(
-            select(JiraCommit).where(JiraCommit.commit_sha == c["commit_sha"])
-        )
-        if existing.scalar_one_or_none():
-            continue
         commit = JiraCommit(
             ticket_id=c["ticket_id"],
             commit_sha=c["commit_sha"],
@@ -294,4 +250,4 @@ async def seed_database(db: AsyncSession):
         )
         db.add(commit)
 
-    await db.commit()
+    await db.flush()

@@ -68,6 +68,9 @@ export default function BATicketDetail() {
         </div>
         <h1 className="text-3xl font-semibold text-zinc-900">{ticket.title}</h1>
         <p className="mt-1 text-zinc-500">{ticket.sprint}</p>
+        <p className="mt-1 text-sm text-zinc-600">
+          Assigned to: <span className="font-semibold text-zinc-800">{ticket.assignee_name || ticket.assignee_id || "-"}</span>
+        </p>
       </div>
 
       <div className="space-y-4">
@@ -77,6 +80,19 @@ export default function BATicketDetail() {
           </CardHeader>
           <CardContent>
             <p className="leading-relaxed text-zinc-700">{ticket.description}</p>
+            {ticket.technical_doc_link && (
+              <p className="mt-3 text-sm text-zinc-700">
+                Technical document:{" "}
+                <a
+                  href={ticket.technical_doc_link}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="font-semibold text-red-700 underline underline-offset-2"
+                >
+                  Open TRS
+                </a>
+              </p>
+            )}
           </CardContent>
         </Card>
 

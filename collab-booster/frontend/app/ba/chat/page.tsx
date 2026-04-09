@@ -7,13 +7,13 @@ export default function BAChat() {
   const { messages, loading, sendMessage } = useChat("/api/ba/chat");
 
   return (
-    <div className="flex h-screen flex-col">
+    <div className="flex h-full min-h-0 flex-col">
       <div className="border-b border-zinc-200 bg-white px-8 py-5">
         <p className="section-label mb-1">Business Analyst</p>
         <h1 className="text-xl font-semibold text-zinc-900">Chat with the Codebase</h1>
         <p className="mt-0.5 text-sm text-zinc-600">Ask anything and get business-language explanations.</p>
       </div>
-      <div className="flex-1 overflow-hidden">
+      <div className="min-h-0 flex-1 overflow-hidden">
         <ChatWindow
           messages={messages}
           loading={loading}

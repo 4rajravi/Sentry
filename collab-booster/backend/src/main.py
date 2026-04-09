@@ -4,6 +4,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy import text
 
 from src.auth.router import router as auth_router
 from src.cockpit.ba_router import router as ba_router
@@ -28,6 +29,12 @@ async def lifespan(app: FastAPI):
 
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+        await conn.execute(
+            text(
+                "ALTER TABLE jira_tickets "
+                "ADD COLUMN IF NOT EXISTS technical_doc_link TEXT"
+            )
+        )
     logger.info("Database tables created")
 
     from src.common.database import AsyncSessionLocal

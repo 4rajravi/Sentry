@@ -1,13 +1,11 @@
 import hashlib
-import os
 from pathlib import Path
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.common.exceptions import PreconditionRequiredError
 from src.repo.models import UserRepoConfig
-
-SEED_REPO_PATH = os.environ.get("SEED_REPO_PATH", "/app/seed-data/loan-calculator")
 
 
 def build_repo_id(source: str) -> str:
@@ -26,7 +24,7 @@ async def get_or_create_repo_config(db: AsyncSession, user_id: str) -> UserRepoC
     return config
 
 
-async def resolve_runtime_repo_for_user(db: AsyncSession, user_id: str) -> tuple[str, str | None]:
+async def resolve_runtime_repo_for_user(db: AsyncSession, user_id: str) -> tuple[str, str]:
     config = await get_or_create_repo_config(db, user_id)
 
     active_path = config.active_repo_path
@@ -35,4 +33,6 @@ async def resolve_runtime_repo_for_user(db: AsyncSession, user_id: str) -> tuple
     if active_path and Path(active_path).exists() and active_repo_id:
         return active_path, active_repo_id
 
-    return SEED_REPO_PATH, None
+    raise PreconditionRequiredError(
+        "No active repository. Add and ingest a Git repository first."
+    )

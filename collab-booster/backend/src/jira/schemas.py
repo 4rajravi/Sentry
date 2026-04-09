@@ -28,8 +28,10 @@ class TicketResponse(BaseModel):
     story_points: int | None = None
     sprint: str | None = None
     assignee_id: str | None = None
+    assignee_name: str | None = None
     reporter_id: str
     acceptance_criteria: str | None = None
+    technical_doc_link: str | None = None
     affected_files: list[str] | None = None
     due_date: datetime | None = None
     created_at: datetime
@@ -50,6 +52,7 @@ class TicketCreate(BaseModel):
     assignee_id: str | None = None
     reporter_id: str
     acceptance_criteria: str | None = None
+    technical_doc_link: str | None = None
     affected_files: list[str] | None = None
 
 
@@ -62,3 +65,4 @@ class TicketUpdate(BaseModel):
     sprint: str | None = None
     assignee_id: str | None = None
     acceptance_criteria: str | None = None
+    technical_doc_link: str | None = None

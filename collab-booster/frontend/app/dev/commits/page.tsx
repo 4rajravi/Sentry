@@ -189,6 +189,9 @@ export default function DevCommitsPage() {
                         <span className="font-mono text-xs text-red-700">{commit.short_sha}</span>
                         <span className="text-[11px] text-zinc-500">{formatDate(commit.date)}</span>
                       </div>
+                      <p className="mb-1 text-[11px] uppercase tracking-[0.12em] text-zinc-500">
+                        Jira: <span className="font-semibold text-zinc-700">{commit.jira_ticket_id || "--"}</span>
+                      </p>
                       <p className="line-clamp-2 text-sm font-medium text-zinc-900">{commit.message}</p>
                       <p className="mt-1 text-xs text-zinc-500">
                         {commit.author} - {commit.files_changed_count} file(s)
@@ -224,6 +227,9 @@ export default function DevCommitsPage() {
               <div className="space-y-4">
                 <div>
                   <p className="font-mono text-xs text-red-700">{selectedCommit.sha}</p>
+                  <p className="mt-1 text-xs uppercase tracking-[0.12em] text-zinc-500">
+                    Jira: <span className="font-semibold text-zinc-700">{(commitDetail?.jira_ticket_id ?? selectedCommit.jira_ticket_id) || "--"}</span>
+                  </p>
                   <h3 className="mt-1 text-lg font-semibold text-zinc-900">{selectedCommit.message}</h3>
                   <p className="mt-1 text-sm text-zinc-600">
                     {selectedCommit.author} - {formatDate(selectedCommit.date)}

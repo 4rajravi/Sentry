@@ -80,16 +80,16 @@ export default function BADashboard() {
         </div>
       )}
 
-      <div className="grid gap-4 xl:grid-cols-4">
+      <div className="grid gap-4 xl:grid-cols-2 2xl:grid-cols-4">
         {columns.map((col) => {
           const colTickets = tickets.filter((t) => t.status === col.key);
           return (
-            <div key={col.key} className="rounded-xl border border-zinc-200 bg-white p-3">
+            <div key={col.key} className="flex max-h-[70vh] min-h-[18rem] flex-col rounded-xl border border-zinc-200 bg-white p-3">
               <div className="mb-3 flex items-center gap-2">
                 <h3 className="font-semibold text-zinc-800">{col.label}</h3>
                 <Badge variant="secondary">{colTickets.length}</Badge>
               </div>
-              <div className="min-h-40 space-y-3">
+              <div className="min-h-0 flex-1 space-y-3 overflow-y-auto pr-1">
                 {colTickets.map((t) => (
                   <TicketCard key={t.id} ticket={t} basePath="/ba/tickets" />
                 ))}

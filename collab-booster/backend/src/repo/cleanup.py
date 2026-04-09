@@ -1,5 +1,5 @@
 import logging
-import tempfile
+import os
 from pathlib import Path
 
 from sqlalchemy import select
@@ -11,6 +11,7 @@ from src.repo.models import UserRepoConfig
 logger = logging.getLogger(__name__)
 
 CLONE_PREFIX = "collab_booster_repo_"
+CLONE_BASE_DIR = Path(os.environ.get("REPO_CLONE_BASE", "/app/repos")).resolve()
 
 
 def _is_managed_clone_path(path: str | None) -> bool:
@@ -18,14 +19,13 @@ def _is_managed_clone_path(path: str | None) -> bool:
         return False
     try:
         resolved = Path(path).resolve()
-        tmp_root = Path(tempfile.gettempdir()).resolve()
     except Exception:
         return False
     return (
         resolved.exists()
         and resolved.is_dir()
         and resolved.name.startswith(CLONE_PREFIX)
-        and tmp_root in resolved.parents
+        and CLONE_BASE_DIR in resolved.parents
     )
 
 
@@ -83,6 +83,7 @@ async def cleanup_all_repo_state(db: AsyncSession) -> bool:
         config.active_repo_id = None
         config.active_repo_url = None
         config.active_repo_path = None
+        config.github_access_token = None
 
     await db.flush()
     return had_active_repo

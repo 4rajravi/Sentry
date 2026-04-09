@@ -2,8 +2,11 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
+from src.auth.models import User
 from src.jira.models import JiraCommit, JiraTicket, TicketStatus
 from src.jira.schemas import TicketCreate, TicketUpdate
+
+DEFAULT_TRS_DOC_LINK = "https://docs.google.com/document/d/10uBYL5MLkUvjHnA8DsRA-fW5SGudp1Sz4xuINywsGOo/edit?tab=t.0"
 
 
 async def get_ticket(db: AsyncSession, ticket_id: str) -> JiraTicket | None:
@@ -12,7 +15,14 @@ async def get_ticket(db: AsyncSession, ticket_id: str) -> JiraTicket | None:
         .options(selectinload(JiraTicket.commits))
         .where(JiraTicket.id == ticket_id)
     )
-    return result.scalar_one_or_none()
+    ticket = result.scalar_one_or_none()
+    if ticket and ticket.assignee_id:
+        assignee = await db.execute(select(User).where(User.id == ticket.assignee_id))
+        user = assignee.scalar_one_or_none()
+        setattr(ticket, "assignee_name", user.full_name if user else None)
+    else:
+        setattr(ticket, "assignee_name", None)
+    return ticket
 
 
 async def list_tickets(
@@ -53,6 +63,7 @@ async def create_ticket(db: AsyncSession, data: TicketCreate) -> JiraTicket:
         assignee_id=data.assignee_id,
         reporter_id=data.reporter_id,
         acceptance_criteria=data.acceptance_criteria,
+        technical_doc_link=data.technical_doc_link or DEFAULT_TRS_DOC_LINK,
         affected_files=data.affected_files,
     )
     db.add(ticket)

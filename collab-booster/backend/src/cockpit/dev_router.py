@@ -1,6 +1,7 @@
 """Developer cockpit API endpoints."""
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.agents.service import (
@@ -13,6 +14,7 @@ from src.agents.service import (
 from src.auth.dependencies import require_role
 from src.auth.models import User, UserRole
 from src.common.database import get_db
+from src.jira.models import JiraCommit
 from src.jira.service import get_ticket, list_tickets
 from src.repo.cloner import get_commit_details, list_repo_commits
 from src.repo.context_service import resolve_runtime_repo_for_user
@@ -39,6 +41,7 @@ class CommitListItem(BaseModel):
     date: str | None = None
     files_changed: list[str]
     files_changed_count: int
+    jira_ticket_id: str = "--"
 
 
 class CommitDetailResponse(BaseModel):
@@ -51,6 +54,7 @@ class CommitDetailResponse(BaseModel):
     files_changed: list[str]
     files_changed_count: int
     patch: str
+    jira_ticket_id: str = "--"
 
 
 @router.get("/tickets")
@@ -143,12 +147,23 @@ async def list_developer_commits(
     repo_path, _ = await resolve_runtime_repo_for_user(db, current_user.id)
     safe_limit = min(max(limit, 1), 500)
     try:
-        return list_repo_commits(
+        commits = list_repo_commits(
             repo_path,
             max_count=safe_limit,
             query=q,
             file_path=file_path,
         )
+        shas = [c["sha"] for c in commits]
+        mapping: dict[str, str] = {}
+        if shas:
+            rows = await db.execute(
+                select(JiraCommit.commit_sha, JiraCommit.ticket_id).where(JiraCommit.commit_sha.in_(shas))
+            )
+            mapping = {sha: ticket_id for sha, ticket_id in rows.all()}
+
+        for c in commits:
+            c["jira_ticket_id"] = mapping.get(c["sha"], "--")
+        return commits
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Failed to load commits: {e}")
 
@@ -161,7 +176,12 @@ async def get_developer_commit_detail(
 ):
     repo_path, _ = await resolve_runtime_repo_for_user(db, current_user.id)
     try:
-        return get_commit_details(repo_path, commit_sha)
+        commit = get_commit_details(repo_path, commit_sha)
+        row = await db.execute(
+            select(JiraCommit.ticket_id).where(JiraCommit.commit_sha == commit["sha"])
+        )
+        commit["jira_ticket_id"] = row.scalar_one_or_none() or "--"
+        return commit
     except Exception as e:
         raise HTTPException(status_code=404, detail=f"Commit not found: {e}")
 
@@ -184,6 +204,10 @@ async def explain_developer_commit(
         files_changed=commit["files_changed"],
         diff_summary=(commit["patch"] or "")[:4000],
     )
+    row = await db.execute(
+        select(JiraCommit.ticket_id).where(JiraCommit.commit_sha == commit["sha"])
+    )
+    commit["jira_ticket_id"] = row.scalar_one_or_none() or "--"
     return {"commit": commit, "explanation": explanation}
 
 

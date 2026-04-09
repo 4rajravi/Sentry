@@ -29,7 +29,6 @@ from src.search.service import rebuild_bm25_from_qdrant
 
 router = APIRouter(prefix="/repo", tags=["repo"])
 
-SEED_REPO_PATH = os.environ.get("SEED_REPO_PATH", "/app/seed-data/loan-calculator")
 OAUTH_STATE_PREFIX = "repo_github_oauth_state:"
 OAUTH_STATE_TTL_SECONDS = 600
 
@@ -37,18 +36,21 @@ OAUTH_STATE_TTL_SECONDS = 600
 async def _fetch_github_username(access_token: str | None) -> str | None:
     if not access_token:
         return None
-    async with httpx.AsyncClient(timeout=20) as client:
-        user_resp = await client.get(
-            "https://api.github.com/user",
-            headers={
-                "Authorization": f"Bearer {access_token}",
-                "Accept": "application/vnd.github+json",
-                "X-GitHub-Api-Version": "2022-11-28",
-            },
-        )
-        if user_resp.status_code >= 400:
-            return None
-        return user_resp.json().get("login")
+    try:
+        async with httpx.AsyncClient(timeout=20) as client:
+            user_resp = await client.get(
+                "https://api.github.com/user",
+                headers={
+                    "Authorization": f"Bearer {access_token}",
+                    "Accept": "application/vnd.github+json",
+                    "X-GitHub-Api-Version": "2022-11-28",
+                },
+            )
+            if user_resp.status_code >= 400:
+                return None
+            return user_resp.json().get("login")
+    except Exception:
+        return None
 
 
 @router.get("/current", response_model=RepoContextResponse)
@@ -57,11 +59,6 @@ async def get_repo_context(
     db: AsyncSession = Depends(get_db),
 ):
     config = await get_or_create_repo_config(db, current_user.id)
-    if config.active_repo_path and not Path(config.active_repo_path).exists():
-        config.active_repo_id = None
-        config.active_repo_url = None
-        config.active_repo_path = None
-        await db.flush()
     github_username = await _fetch_github_username(config.github_access_token)
     return RepoContextResponse(
         github_connected=bool(config.github_access_token),
@@ -177,7 +174,11 @@ async def session_logout(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    had_active_repo = await cleanup_repo_for_user(db, user_id=current_user.id)
+    had_active_repo = await cleanup_repo_for_user(
+        db,
+        user_id=current_user.id,
+        clear_github_token=True,
+    )
     if had_active_repo:
         await rebuild_bm25_from_qdrant()
     return {"ok": True}
@@ -215,8 +216,10 @@ async def ingest(
         resolved_repo_url = config.active_repo_url
         repo_source = config.active_repo_url or config.active_repo_path
     else:
-        path = SEED_REPO_PATH
-        repo_source = SEED_REPO_PATH
+        raise HTTPException(
+            status_code=412,
+            detail="No active repository. Provide repo_url/repo_path to ingest.",
+        )
 
     repo_id = build_repo_id(repo_source)
 
@@ -256,7 +259,12 @@ async def get_file_tree(
     db: AsyncSession = Depends(get_db),
 ):
     config = await get_or_create_repo_config(db, current_user.id)
-    root = config.active_repo_path if config.active_repo_path and Path(config.active_repo_path).exists() else SEED_REPO_PATH
+    if not config.active_repo_path or not Path(config.active_repo_path).exists():
+        raise HTTPException(
+            status_code=412,
+            detail="No active repository. Add and ingest a Git repository first.",
+        )
+    root = config.active_repo_path
     return _build_tree(root, root)
 
 

@@ -1,6 +1,6 @@
 """Git repo cloner and file walker."""
 import os
-import tempfile
+import uuid
 from datetime import datetime
 from pathlib import Path
 from urllib.parse import quote
@@ -21,6 +21,8 @@ TEXT_EXTENSIONS = {
     ".md", ".txt", ".yml", ".yaml", ".toml", ".json", ".env",
     ".ini", ".cfg", ".sh", ".html", ".css",
 }
+CLONE_PREFIX = "collab_booster_repo_"
+CLONE_BASE_DIR = os.environ.get("REPO_CLONE_BASE", "/app/repos")
 
 
 def _with_github_token(url: str, access_token: str) -> str:
@@ -33,7 +35,9 @@ def _with_github_token(url: str, access_token: str) -> str:
 def clone_repo(url: str, target_dir: str | None = None, access_token: str | None = None) -> str:
     """Clone a git repo and return the local path."""
     if target_dir is None:
-        target_dir = tempfile.mkdtemp(prefix="collab_booster_repo_")
+        base = Path(CLONE_BASE_DIR)
+        base.mkdir(parents=True, exist_ok=True)
+        target_dir = str(base / f"{CLONE_PREFIX}{uuid.uuid4().hex[:12]}")
     clone_url = _with_github_token(url, access_token) if access_token else url
     git.Repo.clone_from(clone_url, target_dir)
     return target_dir

@@ -103,6 +103,13 @@ export function ChatWindow({
           type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && !loading && input.trim()) {
+              e.preventDefault();
+              onSend(input.trim());
+              setInput("");
+            }
+          }}
           placeholder={placeholder}
           disabled={loading}
           className="flex-1 rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-sm text-zinc-900 placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-red-500/60 disabled:opacity-50"

@@ -1,12 +1,9 @@
 """File reading tool for LangChain agents."""
-import os
 from pathlib import Path
 
 from langchain_core.tools import tool
 
 from src.repo.runtime import get_repo_runtime_context
-
-REPO_PATH = os.environ.get("SEED_REPO_PATH", "/app/seed-data/loan-calculator")
 
 
 @tool
@@ -17,7 +14,9 @@ def read_file(file_path: str) -> str:
         file_path: Relative path from repo root (e.g. 'src/calculator.py')
     """
     runtime = get_repo_runtime_context()
-    repo_path = runtime.repo_path or REPO_PATH
+    repo_path = runtime.repo_path
+    if not repo_path:
+        return "No active repository. Add and ingest a Git repository first."
     full_path = Path(repo_path) / file_path
     if not full_path.exists():
         return f"File not found: {file_path}"
@@ -38,7 +37,9 @@ def list_files(directory: str = "") -> str:
         directory: Relative directory path (empty = repo root)
     """
     runtime = get_repo_runtime_context()
-    repo_path = runtime.repo_path or REPO_PATH
+    repo_path = runtime.repo_path
+    if not repo_path:
+        return "No active repository. Add and ingest a Git repository first."
     full_path = Path(repo_path) / directory
     if not full_path.exists():
         return f"Directory not found: {directory}"

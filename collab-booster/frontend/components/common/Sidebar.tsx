@@ -20,7 +20,6 @@ interface SidebarProps {
 const BA_NAV: NavItem[] = [
   { href: "/ba", label: "Home", icon: "home" },
   { href: "/ba/dashboard", label: "Sprint Dashboard", icon: "board" },
-  { href: "/ba/tickets", label: "My Tickets", icon: "ticket" },
   { href: "/ba/generate-doc", label: "Generate Biz Doc", icon: "doc" },
   { href: "/ba/create-tickets", label: "Create Tickets", icon: "create" },
   { href: "/ba/chat", label: "Chat with Code", icon: "chat" },

@@ -5,7 +5,11 @@ import { useMemo, useState } from "react";
 import { api } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { emitRepoContextUpdated, useRepoContext } from "@/hooks/useRepoContext";
+import {
+  emitRepoContextUpdated,
+  useRepoContext,
+  writeCachedRepoContext,
+} from "@/hooks/useRepoContext";
 
 interface GitHubAuthUrlResponse {
   auth_url: string;
@@ -31,12 +35,22 @@ function formatRepoLabel(url: string) {
   }
 }
 
+function formatRepoSource(context: { active_repo_url: string | null; active_repo_path: string | null; active_repo_id: string | null }) {
+  if (context.active_repo_url) {
+    return formatRepoLabel(context.active_repo_url);
+  }
+  if (context.active_repo_path) {
+    const parts = context.active_repo_path.split("/").filter(Boolean);
+    return parts[parts.length - 1] || context.active_repo_path;
+  }
+  return context.active_repo_id || "--";
+}
+
 export function RepoConnector() {
   const [repoUrl, setRepoUrl] = useState("");
   const [loading, setLoading] = useState(false);
   const [githubLoading, setGithubLoading] = useState(false);
   const [error, setError] = useState("");
-  const [status, setStatus] = useState("");
   const { context, refresh } = useRepoContext();
 
   const githubStatus = useMemo(() => {
@@ -53,7 +67,6 @@ export function RepoConnector() {
   const connectGitHub = async () => {
     setGithubLoading(true);
     setError("");
-    setStatus("");
 
     try {
       const res = await api.get<GitHubAuthUrlResponse>("/repo/github/login");
@@ -74,7 +87,6 @@ export function RepoConnector() {
           if (latest.github_connected) {
             window.clearInterval(interval);
             setGithubLoading(false);
-            setStatus("GitHub connected successfully.");
             if (!popup.closed) popup.close();
             return;
           }
@@ -96,12 +108,11 @@ export function RepoConnector() {
   const logoutGitHub = async () => {
     setGithubLoading(true);
     setError("");
-    setStatus("");
     try {
       await api.post<{ ok: boolean }>("/repo/github/logout", {});
+      writeCachedRepoContext(null);
       await refresh();
-      emitRepoContextUpdated();
-      setStatus("GitHub disconnected.");
+      emitRepoContextUpdated(null);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to logout from GitHub");
     } finally {
@@ -117,17 +128,21 @@ export function RepoConnector() {
 
     setLoading(true);
     setError("");
-    setStatus("");
 
     try {
       const res = await api.post<IngestResponse>("/repo/ingest", {
         repo_url: repoUrl.trim(),
       });
+      const nextContext = {
+        github_connected: Boolean(context?.github_connected),
+        github_username: context?.github_username ?? null,
+        active_repo_id: res.active_repo_id,
+        active_repo_url: res.active_repo_url,
+        active_repo_path: context?.active_repo_path ?? null,
+      };
+      writeCachedRepoContext(nextContext);
+      emitRepoContextUpdated(nextContext);
       await refresh();
-      emitRepoContextUpdated();
-      setStatus(
-        `Repository ingested: ${res.files_processed} files, ${res.chunks_indexed} indexed chunks.`
-      );
     } catch (e) {
       const message = e instanceof Error ? e.message : "Failed to ingest repository";
       const isPrivateRepoError =
@@ -152,7 +167,13 @@ export function RepoConnector() {
         </p>
       </CardHeader>
       <CardContent>
-        <div className="grid gap-3 md:grid-cols-[1fr_auto]">
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            void ingestRepo();
+          }}
+          className="grid gap-3 md:grid-cols-[1fr_auto]"
+        >
           <input
             type="url"
             value={repoUrl}
@@ -160,10 +181,10 @@ export function RepoConnector() {
             placeholder="https://github.com/owner/repository"
             className="w-full rounded-lg border border-zinc-300 bg-white px-4 py-2.5 text-sm text-zinc-900 placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-red-500/50"
           />
-          <Button onClick={ingestRepo} disabled={loading || githubLoading}>
+          <Button type="submit" disabled={loading || githubLoading}>
             {loading ? "Cloning and indexing..." : "Add Repo"}
           </Button>
-        </div>
+        </form>
 
         <div className="mt-3 flex flex-wrap items-center gap-3">
           {context?.github_connected ? (
@@ -179,13 +200,12 @@ export function RepoConnector() {
           <span className="text-sm text-zinc-600">{githubStatus}</span>
         </div>
 
-        {context?.active_repo_url && (
+        {(context?.active_repo_url || context?.active_repo_path || context?.active_repo_id) && (
           <p className="mt-3 text-sm text-zinc-700">
-            Active repo: <span className="font-medium">{formatRepoLabel(context.active_repo_url)}</span>
+            Active repo: <span className="font-bold text-red-700">{formatRepoSource(context)}</span>
           </p>
         )}
 
-        {status && <p className="mt-3 text-sm text-red-700">{status}</p>}
         {error && <p className="mt-3 text-sm text-red-700">{error}</p>}
       </CardContent>
     </Card>

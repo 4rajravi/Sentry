@@ -6,6 +6,7 @@ export interface CommitListItem {
   date: string | null;
   files_changed: string[];
   files_changed_count: number;
+  jira_ticket_id: string;
 }
 
 export interface CommitDetail extends CommitListItem {

@@ -31,8 +31,10 @@ export interface Ticket {
   story_points: number | null;
   sprint: string | null;
   assignee_id: string | null;
+  assignee_name?: string | null;
   reporter_id: string;
   acceptance_criteria: string | null;
+  technical_doc_link: string | null;
   affected_files: string[] | null;
   due_date: string | null;
   created_at: string;

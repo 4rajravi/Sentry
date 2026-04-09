@@ -19,3 +19,8 @@ class ForbiddenError(HTTPException):
 class ConflictError(HTTPException):
     def __init__(self, detail: str = "Resource already exists"):
         super().__init__(status_code=status.HTTP_409_CONFLICT, detail=detail)
+
+
+class PreconditionRequiredError(HTTPException):
+    def __init__(self, detail: str = "Required precondition is missing"):
+        super().__init__(status_code=status.HTTP_412_PRECONDITION_FAILED, detail=detail)

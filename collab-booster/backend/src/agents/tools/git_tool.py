@@ -1,12 +1,8 @@
 """Git tools for LangChain agents."""
-import os
-
 import git
 from langchain_core.tools import tool
 
 from src.repo.runtime import get_repo_runtime_context
-
-REPO_PATH = os.environ.get("SEED_REPO_PATH", "/app/seed-data/loan-calculator")
 
 
 @tool
@@ -20,7 +16,9 @@ def git_log(max_count: int = 10, since: str | None = None, until: str | None = N
     """
     try:
         runtime = get_repo_runtime_context()
-        repo_path = runtime.repo_path or REPO_PATH
+        repo_path = runtime.repo_path
+        if not repo_path:
+            return "No active repository. Add and ingest a Git repository first."
         repo = git.Repo(repo_path)
         kwargs = {"max_count": max_count}
         if since:
@@ -48,7 +46,9 @@ def git_diff(commit_sha: str) -> str:
     """
     try:
         runtime = get_repo_runtime_context()
-        repo_path = runtime.repo_path or REPO_PATH
+        repo_path = runtime.repo_path
+        if not repo_path:
+            return "No active repository. Add and ingest a Git repository first."
         repo = git.Repo(repo_path)
         commit = repo.commit(commit_sha)
         if commit.parents:
@@ -74,7 +74,9 @@ def git_show(commit_sha: str) -> str:
     """
     try:
         runtime = get_repo_runtime_context()
-        repo_path = runtime.repo_path or REPO_PATH
+        repo_path = runtime.repo_path
+        if not repo_path:
+            return "No active repository. Add and ingest a Git repository first."
         repo = git.Repo(repo_path)
         commit = repo.commit(commit_sha)
         files = list(commit.stats.files.keys())[:20]

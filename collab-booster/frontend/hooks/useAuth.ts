@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getCurrentUser, clearAuth } from "@/lib/auth";
 import { api } from "@/lib/api";
+import { writeCachedRepoContext } from "@/hooks/useRepoContext";
 import type { CurrentUser } from "@/types/auth";
 
 export function useAuth(requiredRole?: "business_analyst" | "developer") {
@@ -32,6 +33,7 @@ export function useAuth(requiredRole?: "business_analyst" | "developer") {
       } catch {
         // Best effort cleanup; always continue local logout.
       } finally {
+        writeCachedRepoContext(null);
         clearAuth();
         router.replace("/login");
       }
