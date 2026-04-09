@@ -30,70 +30,62 @@ export default function Onboarding() {
   };
 
   return (
-    <div className="p-8 max-w-3xl">
-      <h1 className="text-2xl font-bold text-gray-900 mb-2">
-        🚀 New Developer Onboarding
-      </h1>
-      <p className="text-gray-500 mb-6">
-        Get a personalized guide to this project — architecture, key files, and your assigned tickets.
-      </p>
+    <div className="page-wrap max-w-4xl">
+      <p className="section-label mb-2">Developer</p>
+      <h1 className="text-3xl font-semibold text-zinc-900">Onboarding Guide</h1>
+      <p className="mb-6 mt-2 text-zinc-600">Generate a personalized project briefing from real repository context.</p>
 
-      {!guide && !loading && (
-        <div className="text-center py-16 border-2 border-dashed border-gray-200 rounded-xl">
-          <p className="text-4xl mb-4">🚀</p>
-          <p className="text-lg font-medium text-gray-700 mb-2">
-            Ready to get started?
-          </p>
-          <p className="text-gray-500 mb-6">
-            AI will analyze the codebase and your assigned tickets to create a personalized guide.
+      {guide === null && loading === false && (
+        <div className="rounded-xl border border-dashed border-zinc-300 py-16 text-center">
+          <p className="text-lg font-medium text-zinc-800">Ready to start</p>
+          <p className="mx-auto mt-2 mb-6 max-w-xl text-zinc-600">
+            AI will map architecture, recommend reading order, and summarize your assigned work.
           </p>
           <Button size="lg" onClick={handleGenerate}>
-            Generate My Onboarding Guide
+            Generate Onboarding Guide
           </Button>
         </div>
       )}
 
       {loading && (
-        <div className="flex items-center justify-center h-48">
-          <LoadingSpinner label="AI is exploring the project for you..." />
+        <div className="flex h-48 items-center justify-center">
+          <LoadingSpinner label="Analyzing project structure..." />
         </div>
       )}
 
-      {guide && !loading && (
+      {guide && loading === false && (
         <div className="space-y-4">
           <Card>
             <CardHeader>
-              <h2 className="font-semibold text-gray-800">📖 Project Overview</h2>
+              <h2 className="text-sm font-semibold uppercase tracking-[0.16em] text-zinc-700">Project Overview</h2>
             </CardHeader>
             <CardContent>
-              <p className="text-gray-700 leading-relaxed">{guide.project_overview}</p>
+              <p className="leading-relaxed text-zinc-700">{guide.project_overview}</p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader>
-              <h2 className="font-semibold text-gray-800">🏗️ Architecture</h2>
+              <h2 className="text-sm font-semibold uppercase tracking-[0.16em] text-zinc-700">Architecture</h2>
             </CardHeader>
             <CardContent>
-              <p className="text-gray-700 leading-relaxed">{guide.architecture_summary}</p>
+              <p className="leading-relaxed text-zinc-700">{guide.architecture_summary}</p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader>
-              <h2 className="font-semibold text-gray-800">📂 Read These Files First</h2>
+              <h2 className="text-sm font-semibold uppercase tracking-[0.16em] text-zinc-700">Read These Files First</h2>
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
                 {guide.recommended_reading_order.map((f, i) => (
                   <div key={i} className="flex items-start gap-3">
-                    <span className="text-blue-500 font-mono text-sm font-bold mt-0.5">
-                      {i + 1}.
-                    </span>
+                    <span className="mt-0.5 font-mono text-sm font-bold text-red-700">{i + 1}.</span>
                     <div>
-                      <p className="font-mono text-sm text-gray-800">{f}</p>
+                      <p className="font-mono text-sm text-zinc-800">{f}</p>
                       {guide.key_files.find((kf) => kf.path === f) && (
-                        <p className="text-xs text-gray-500 mt-0.5">
+                        <p className="mt-0.5 text-xs text-zinc-500">
                           {guide.key_files.find((kf) => kf.path === f)?.purpose}
                         </p>
                       )}
@@ -106,13 +98,13 @@ export default function Onboarding() {
 
           <Card>
             <CardHeader>
-              <h2 className="font-semibold text-gray-800">⚙️ Getting Started</h2>
+              <h2 className="text-sm font-semibold uppercase tracking-[0.16em] text-zinc-700">Getting Started</h2>
             </CardHeader>
             <CardContent>
               <ol className="space-y-2">
                 {guide.getting_started_steps.map((step, i) => (
-                  <li key={i} className="text-sm text-gray-700 flex gap-3">
-                    <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-blue-100 text-blue-700 text-xs font-bold shrink-0 mt-0.5">
+                  <li key={i} className="flex gap-3 text-sm text-zinc-700">
+                    <span className="mt-0.5 inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-md border border-red-300 bg-red-50 text-xs font-bold text-red-700">
                       {i + 1}
                     </span>
                     {step}
@@ -124,12 +116,10 @@ export default function Onboarding() {
 
           <Card>
             <CardHeader>
-              <h2 className="font-semibold text-gray-800">🎫 Your Tickets</h2>
+              <h2 className="text-sm font-semibold uppercase tracking-[0.16em] text-zinc-700">Assigned Tickets</h2>
             </CardHeader>
             <CardContent>
-              <p className="text-gray-700 leading-relaxed">
-                {guide.assigned_tickets_guidance}
-              </p>
+              <p className="leading-relaxed text-zinc-700">{guide.assigned_tickets_guidance}</p>
             </CardContent>
           </Card>
 

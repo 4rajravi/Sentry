@@ -2,16 +2,16 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { clsx } from "clsx";
 
 const badgeVariants = cva(
-  "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold transition-colors",
+  "inline-flex items-center rounded-md border px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide",
   {
     variants: {
       variant: {
-        default: "bg-blue-100 text-blue-800",
-        success: "bg-green-100 text-green-800",
-        warning: "bg-yellow-100 text-yellow-800",
-        danger: "bg-red-100 text-red-800",
-        secondary: "bg-gray-100 text-gray-700",
-        purple: "bg-purple-100 text-purple-800",
+        default: "border-red-300 bg-red-50 text-red-700",
+        success: "border-zinc-300 bg-zinc-100 text-zinc-800",
+        warning: "border-red-400 bg-red-100 text-red-800",
+        danger: "border-red-500 bg-red-200 text-red-900",
+        secondary: "border-zinc-300 bg-white text-zinc-700",
+        purple: "border-red-400 bg-red-100 text-red-800",
       },
     },
     defaultVariants: { variant: "default" },
@@ -24,9 +24,5 @@ interface BadgeProps extends VariantProps<typeof badgeVariants> {
 }
 
 export function Badge({ variant, children, className }: BadgeProps) {
-  return (
-    <span className={clsx(badgeVariants({ variant }), className)}>
-      {children}
-    </span>
-  );
+  return <span className={clsx(badgeVariants({ variant }), className)}>{children}</span>;
 }

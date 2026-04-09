@@ -22,7 +22,7 @@ export default function VacationCatchup() {
   const [summary, setSummary] = useState<CatchupSummary | null>(null);
 
   const handleCatchup = async () => {
-    if (!fromDate || !toDate) return;
+    if (fromDate.length === 0 || toDate.length === 0) return;
     setLoading(true);
     setSummary(null);
     try {
@@ -37,75 +37,61 @@ export default function VacationCatchup() {
   };
 
   return (
-    <div className="p-8 max-w-3xl">
-      <h1 className="text-2xl font-bold text-gray-900 mb-2">
-        🏖️ Vacation Catchup
-      </h1>
-      <p className="text-gray-500 mb-6">
-        Select when you were away — AI will summarize everything that happened.
-      </p>
+    <div className="page-wrap max-w-4xl">
+      <p className="section-label mb-2">Developer</p>
+      <h1 className="text-3xl font-semibold text-zinc-900">Catchup Summary</h1>
+      <p className="mb-6 mt-2 text-zinc-600">Select your absence period and generate a concise update.</p>
 
       <Card className="mb-6">
         <CardContent className="py-5">
-          <div className="flex items-end gap-4">
+          <div className="flex flex-wrap items-end gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                From
-              </label>
+              <label className="mb-1 block text-sm font-medium text-zinc-700">From</label>
               <input
                 type="date"
                 value={fromDate}
                 onChange={(e) => setFromDate(e.target.value)}
-                className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-red-500/60"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                To
-              </label>
+              <label className="mb-1 block text-sm font-medium text-zinc-700">To</label>
               <input
                 type="date"
                 value={toDate}
                 onChange={(e) => setToDate(e.target.value)}
-                className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-red-500/60"
               />
             </div>
-            <Button
-              onClick={handleCatchup}
-              disabled={loading || !fromDate}
-            >
-              {loading ? "Summarizing..." : "Catch me up!"}
+            <Button onClick={handleCatchup} disabled={loading || fromDate.length === 0}>
+              {loading ? "Summarizing..." : "Generate Catchup"}
             </Button>
           </div>
         </CardContent>
       </Card>
 
       {loading && (
-        <div className="flex items-center justify-center h-48">
-          <LoadingSpinner label="AI is reviewing commits and tickets..." />
+        <div className="flex h-48 items-center justify-center">
+          <LoadingSpinner label="Reviewing commits and tickets..." />
         </div>
       )}
 
-      {summary && !loading && (
+      {summary && loading === false && (
         <div className="space-y-4">
-          <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
-            <p className="font-semibold text-blue-900 mb-2">
-              📋 {summary.period}
-            </p>
-            <p className="text-sm text-blue-800 leading-relaxed">{summary.narrative}</p>
+          <div className="rounded-xl border border-red-300 bg-red-50 p-4">
+            <p className="mb-2 font-semibold text-red-700">{summary.period}</p>
+            <p className="text-sm leading-relaxed text-red-700">{summary.narrative}</p>
           </div>
 
           {summary.completed_work.length > 0 && (
             <Card>
               <CardHeader>
-                <h2 className="font-semibold text-gray-800">✅ Completed</h2>
+                <h2 className="text-sm font-semibold uppercase tracking-[0.16em] text-zinc-700">Completed</h2>
               </CardHeader>
               <CardContent>
                 <ul className="space-y-1">
                   {summary.completed_work.map((item, i) => (
-                    <li key={i} className="text-sm text-gray-700 flex gap-2">
-                      <span className="text-green-500">•</span> {item}
-                    </li>
+                    <li key={i} className="text-sm text-zinc-700">- {item}</li>
                   ))}
                 </ul>
               </CardContent>
@@ -115,14 +101,12 @@ export default function VacationCatchup() {
           {summary.in_progress_work.length > 0 && (
             <Card>
               <CardHeader>
-                <h2 className="font-semibold text-gray-800">⏳ In Progress</h2>
+                <h2 className="text-sm font-semibold uppercase tracking-[0.16em] text-zinc-700">In Progress</h2>
               </CardHeader>
               <CardContent>
                 <ul className="space-y-1">
                   {summary.in_progress_work.map((item, i) => (
-                    <li key={i} className="text-sm text-gray-700 flex gap-2">
-                      <span className="text-blue-500">•</span> {item}
-                    </li>
+                    <li key={i} className="text-sm text-zinc-700">- {item}</li>
                   ))}
                 </ul>
               </CardContent>
@@ -132,16 +116,12 @@ export default function VacationCatchup() {
           {summary.new_tickets_assigned.length > 0 && (
             <Card>
               <CardHeader>
-                <h2 className="font-semibold text-gray-800">
-                  🎫 New Tickets Assigned to You
-                </h2>
+                <h2 className="text-sm font-semibold uppercase tracking-[0.16em] text-zinc-700">New Tickets Assigned</h2>
               </CardHeader>
               <CardContent>
                 <ul className="space-y-1">
                   {summary.new_tickets_assigned.map((item, i) => (
-                    <li key={i} className="text-sm text-gray-700 flex gap-2">
-                      <span className="text-orange-500">→</span> {item}
-                    </li>
+                    <li key={i} className="text-sm text-zinc-700">- {item}</li>
                   ))}
                 </ul>
               </CardContent>
@@ -151,14 +131,12 @@ export default function VacationCatchup() {
           {summary.key_code_changes.length > 0 && (
             <Card>
               <CardHeader>
-                <h2 className="font-semibold text-gray-800">🔧 Key Code Changes</h2>
+                <h2 className="text-sm font-semibold uppercase tracking-[0.16em] text-zinc-700">Key Code Changes</h2>
               </CardHeader>
               <CardContent>
                 <ul className="space-y-1">
                   {summary.key_code_changes.map((item, i) => (
-                    <li key={i} className="text-sm font-mono text-gray-700 flex gap-2">
-                      <span className="text-purple-500">•</span> {item}
-                    </li>
+                    <li key={i} className="text-sm font-mono text-zinc-700">- {item}</li>
                   ))}
                 </ul>
               </CardContent>

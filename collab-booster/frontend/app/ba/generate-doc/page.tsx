@@ -43,95 +43,77 @@ export default function GenerateDoc() {
   };
 
   return (
-    <div className="p-8 max-w-4xl">
-      <h1 className="text-2xl font-bold text-gray-900 mb-2">
-        📄 Generate Business Document
-      </h1>
-      <p className="text-gray-500 mb-6">
-        Paste code and get a business document — no technical jargon.
-      </p>
+    <div className="page-wrap">
+      <p className="section-label mb-2">Business Analyst</p>
+      <h1 className="text-3xl font-semibold text-zinc-900">Generate Business Document</h1>
+      <p className="mb-6 mt-2 text-zinc-600">Paste code context and produce non-technical documentation.</p>
 
-      <div className="grid grid-cols-2 gap-6">
-        <div>
-          <Card>
-            <CardHeader>
-              <h2 className="font-semibold text-gray-800">Input</h2>
-            </CardHeader>
-            <CardContent>
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Document Type
-                </label>
-                <select
-                  value={docType}
-                  onChange={(e) => setDocType(e.target.value)}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  {DOC_TYPES.map((t) => (
-                    <option key={t.value} value={t.value}>
-                      {t.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Paste Code
-                </label>
-                <textarea
-                  value={codeContent}
-                  onChange={(e) => setCodeContent(e.target.value)}
-                  placeholder="Paste code here, or describe the feature you want documented..."
-                  rows={12}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-
-              <Button
-                onClick={handleGenerate}
-                disabled={loading || !codeContent.trim()}
-                className="w-full"
+      <div className="grid gap-6 lg:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <h2 className="text-sm font-semibold uppercase tracking-[0.16em] text-zinc-700">Input</h2>
+          </CardHeader>
+          <CardContent>
+            <div className="mb-4">
+              <label className="mb-2 block text-sm font-medium text-zinc-700">Document Type</label>
+              <select
+                value={docType}
+                onChange={(e) => setDocType(e.target.value)}
+                className="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-red-500/60"
               >
-                {loading ? "Generating..." : "Generate Document"}
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
+                {DOC_TYPES.map((t) => (
+                  <option key={t.value} value={t.value}>
+                    {t.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="mb-4">
+              <label className="mb-2 block text-sm font-medium text-zinc-700">Paste Code</label>
+              <textarea
+                value={codeContent}
+                onChange={(e) => setCodeContent(e.target.value)}
+                placeholder="Paste code or describe the feature"
+                rows={12}
+                className="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 font-mono text-sm text-zinc-900 placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-red-500/60"
+              />
+            </div>
+
+            <Button onClick={handleGenerate} disabled={loading || !codeContent.trim()} className="w-full">
+              {loading ? "Generating..." : "Generate Document"}
+            </Button>
+          </CardContent>
+        </Card>
 
         <div>
           {loading && (
-            <div className="flex items-center justify-center h-64">
-              <LoadingSpinner label="AI is writing your document..." />
+            <div className="flex h-64 items-center justify-center">
+              <LoadingSpinner label="Writing document..." />
             </div>
           )}
           {result && !loading && (
             <Card>
               <CardHeader>
-                <div className="flex items-center justify-between">
-                  <h2 className="font-semibold text-gray-800">{result.title}</h2>
-                  <button
-                    onClick={() => navigator.clipboard.writeText(result.content)}
-                    className="text-xs text-blue-600 hover:underline"
-                  >
-                    📋 Copy
+                <div className="flex items-center justify-between gap-3">
+                  <h2 className="text-sm font-semibold uppercase tracking-[0.16em] text-zinc-700">{result.title}</h2>
+                  <button onClick={() => navigator.clipboard.writeText(result.content)} className="text-xs text-red-700">
+                    Copy
                   </button>
                 </div>
               </CardHeader>
               <CardContent>
-                <pre className="whitespace-pre-wrap text-sm text-gray-700 font-sans leading-relaxed max-h-96 overflow-y-auto">
+                <pre className="max-h-96 overflow-y-auto whitespace-pre-wrap font-sans text-sm leading-relaxed text-zinc-800">
                   {result.content}
                 </pre>
 
                 {result.key_business_rules.length > 0 && (
-                  <div className="mt-4 border-t pt-4">
-                    <p className="text-xs font-semibold text-gray-500 uppercase mb-2">
-                      Key Business Rules
-                    </p>
+                  <div className="mt-4 border-t border-zinc-200 pt-4">
+                    <p className="mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-zinc-500">Key Business Rules</p>
                     <ul className="space-y-1">
                       {result.key_business_rules.map((rule, i) => (
-                        <li key={i} className="text-sm text-gray-700 flex gap-2">
-                          <span className="text-blue-500">•</span> {rule}
+                        <li key={i} className="text-sm text-zinc-700">
+                          - {rule}
                         </li>
                       ))}
                     </ul>
@@ -141,11 +123,8 @@ export default function GenerateDoc() {
             </Card>
           )}
           {!result && !loading && (
-            <div className="flex items-center justify-center h-64 text-gray-400">
-              <div className="text-center">
-                <p className="text-4xl mb-3">📄</p>
-                <p>Your document will appear here</p>
-              </div>
+            <div className="flex h-64 items-center justify-center text-zinc-500">
+              <p>Your document will appear here</p>
             </div>
           )}
         </div>

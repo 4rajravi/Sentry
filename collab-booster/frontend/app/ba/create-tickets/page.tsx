@@ -34,10 +34,9 @@ export default function CreateTickets() {
     setProposals([]);
     setCreated([]);
     try {
-      const res = await api.post<{ tickets: TicketProposal[] }>(
-        "/api/ba/doc-to-tickets",
-        { requirement_doc: requirementDoc }
-      );
+      const res = await api.post<{ tickets: TicketProposal[] }>("/api/ba/doc-to-tickets", {
+        requirement_doc: requirementDoc,
+      });
       setProposals(res.tickets || []);
       setSelected(new Set(res.tickets.map((_, i) => i)));
     } finally {
@@ -49,10 +48,10 @@ export default function CreateTickets() {
     const toCreate = proposals.filter((_, i) => selected.has(i));
     setCreating(true);
     try {
-      const res = await api.post<{ created: { id: string; title: string }[] }>(
-        "/api/ba/tickets/bulk-create",
-        { tickets: toCreate, reporter_id: user?.user_id }
-      );
+      const res = await api.post<{ created: { id: string; title: string }[] }>("/api/ba/tickets/bulk-create", {
+        tickets: toCreate,
+        reporter_id: user?.user_id,
+      });
       setCreated(res.created);
       setProposals([]);
     } finally {
@@ -70,82 +69,62 @@ export default function CreateTickets() {
   };
 
   return (
-    <div className="p-8 max-w-4xl">
-      <h1 className="text-2xl font-bold text-gray-900 mb-2">
-        ➕ Requirements → Jira Tickets
-      </h1>
-      <p className="text-gray-500 mb-6">
-        Paste your requirements document and AI will create structured Jira tickets.
-      </p>
+    <div className="page-wrap">
+      <p className="section-label mb-2">Business Analyst</p>
+      <h1 className="text-3xl font-semibold text-zinc-900">Requirements to Tickets</h1>
+      <p className="mb-6 mt-2 text-zinc-600">Paste a requirements document and generate structured ticket proposals.</p>
 
       {created.length > 0 && (
-        <div className="mb-6 bg-green-50 border border-green-200 rounded-xl p-4">
-          <p className="font-semibold text-green-800 mb-2">
-            ✅ {created.length} tickets created!
-          </p>
+        <div className="mb-6 rounded-xl border border-red-300 bg-red-50 p-4">
+          <p className="mb-2 font-semibold text-red-700">{created.length} tickets created</p>
           {created.map((t) => (
-            <p key={t.id} className="text-sm text-green-700">
+            <p key={t.id} className="text-sm text-red-700">
               {t.id}: {t.title}
             </p>
           ))}
         </div>
       )}
 
-      <div className="grid grid-cols-2 gap-6">
+      <div className="grid gap-6 lg:grid-cols-2">
         <Card>
           <CardHeader>
-            <h2 className="font-semibold text-gray-800">Requirements Document</h2>
+            <h2 className="text-sm font-semibold uppercase tracking-[0.16em] text-zinc-700">Requirements Document</h2>
           </CardHeader>
           <CardContent>
             <textarea
               value={requirementDoc}
               onChange={(e) => setRequirementDoc(e.target.value)}
-              placeholder="Paste your requirements document here...&#10;&#10;Example:&#10;We need to add a loan term calculation feature. Users should be able to enter their desired monthly payment and see how many months they need to repay..."
+              placeholder="Paste your requirements here"
               rows={14}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-red-500/60"
             />
-            <Button
-              onClick={handleGenerate}
-              disabled={generating || !requirementDoc.trim()}
-              className="w-full mt-3"
-            >
-              {generating ? "Generating tickets..." : "🤖 Generate Ticket Proposals"}
+            <Button onClick={handleGenerate} disabled={generating || !requirementDoc.trim()} className="mt-3 w-full">
+              {generating ? "Generating tickets..." : "Generate Ticket Proposals"}
             </Button>
           </CardContent>
         </Card>
 
         <div>
           {generating && (
-            <div className="flex items-center justify-center h-64">
-              <LoadingSpinner label="AI is analyzing your requirements..." />
+            <div className="flex h-64 items-center justify-center">
+              <LoadingSpinner label="Analyzing requirements..." />
             </div>
           )}
 
           {proposals.length > 0 && !generating && (
             <div>
-              <div className="flex items-center justify-between mb-3">
-                <h2 className="font-semibold text-gray-800">
+              <div className="mb-3 flex items-center justify-between">
+                <h2 className="text-sm font-semibold uppercase tracking-[0.16em] text-zinc-700">
                   Proposed Tickets ({proposals.length})
                 </h2>
-                <Button
-                  size="sm"
-                  onClick={handleCreate}
-                  disabled={creating || selected.size === 0}
-                >
-                  {creating
-                    ? "Creating..."
-                    : `✅ Create ${selected.size} ticket${selected.size !== 1 ? "s" : ""}`}
+                <Button size="sm" onClick={handleCreate} disabled={creating || selected.size === 0}>
+                  {creating ? "Creating..." : `Create ${selected.size} ticket${selected.size !== 1 ? "s" : ""}`}
                 </Button>
               </div>
 
-              <div className="space-y-3 max-h-[calc(100vh-300px)] overflow-y-auto pr-1">
+              <div className="max-h-[calc(100vh-300px)] space-y-3 overflow-y-auto pr-1">
                 {proposals.map((proposal, i) => (
-                  <Card
-                    key={i}
-                    className={
-                      selected.has(i) ? "border-blue-400" : "opacity-60"
-                    }
-                  >
+                  <Card key={i} className={selected.has(i) ? "border-red-300" : "opacity-70"}>
                     <CardContent className="py-4">
                       <div className="flex items-start gap-3">
                         <input
@@ -154,28 +133,18 @@ export default function CreateTickets() {
                           onChange={() => toggleSelect(i)}
                           className="mt-1"
                         />
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-1">
-                            <Badge variant="default">
-                              {proposal.story_points} pts
-                            </Badge>
-                            <Badge variant="secondary">
-                              {proposal.priority}
-                            </Badge>
+                        <div className="min-w-0 flex-1">
+                          <div className="mb-1 flex items-center gap-2">
+                            <Badge variant="default">{proposal.story_points} pts</Badge>
+                            <Badge variant="secondary">{proposal.priority}</Badge>
                           </div>
-                          <p className="font-medium text-sm text-gray-900">
-                            {proposal.title}
-                          </p>
-                          <p className="text-xs text-gray-500 mt-1 line-clamp-2">
-                            {proposal.description}
-                          </p>
+                          <p className="text-sm font-medium text-zinc-900">{proposal.title}</p>
+                          <p className="mt-1 line-clamp-2 text-xs text-zinc-600">{proposal.description}</p>
                           {proposal.acceptance_criteria.length > 0 && (
-                            <ul className="text-xs text-gray-400 mt-2 space-y-0.5">
-                              {proposal.acceptance_criteria
-                                .slice(0, 2)
-                                .map((ac, j) => (
-                                  <li key={j}>✓ {ac}</li>
-                                ))}
+                            <ul className="mt-2 space-y-0.5 text-xs text-zinc-500">
+                              {proposal.acceptance_criteria.slice(0, 2).map((ac, j) => (
+                                <li key={j}>- {ac}</li>
+                              ))}
                             </ul>
                           )}
                         </div>
@@ -188,11 +157,8 @@ export default function CreateTickets() {
           )}
 
           {!proposals.length && !generating && (
-            <div className="flex items-center justify-center h-64 text-gray-400">
-              <div className="text-center">
-                <p className="text-4xl mb-3">🎫</p>
-                <p>Ticket proposals will appear here</p>
-              </div>
+            <div className="flex h-64 items-center justify-center text-zinc-500">
+              <p>Ticket proposals will appear here</p>
             </div>
           )}
         </div>

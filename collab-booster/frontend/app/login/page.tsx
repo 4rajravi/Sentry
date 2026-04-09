@@ -9,11 +9,11 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
 const DEMO_USERS = [
-  { username: "ba_sarah", label: "Sarah (BA)", role: "Business Analyst", icon: "📊" },
-  { username: "ba_tom", label: "Tom (BA)", role: "Business Analyst", icon: "📊" },
-  { username: "dev_alice", label: "Alice (Dev)", role: "Developer", icon: "💻" },
-  { username: "dev_bob", label: "Bob (Dev)", role: "Developer", icon: "💻" },
-  { username: "dev_newbie", label: "Chris (New Dev)", role: "Developer", icon: "🚀" },
+  { username: "ba_sarah", label: "Sarah", role: "Business Analyst" },
+  { username: "ba_tom", label: "Tom", role: "Business Analyst" },
+  { username: "dev_alice", label: "Alice", role: "Developer" },
+  { username: "dev_bob", label: "Bob", role: "Developer" },
+  { username: "dev_newbie", label: "Chris", role: "Developer" },
 ];
 
 export default function LoginPage() {
@@ -46,43 +46,43 @@ export default function LoginPage() {
   };
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-950 to-gray-900 flex items-center justify-center p-6">
+    <main className="flex min-h-screen items-center justify-center p-6">
       <div className="w-full max-w-md">
-        <div className="text-center mb-8">
-          <span className="text-5xl">🤝</span>
-          <h1 className="text-2xl font-bold text-white mt-4">AI Collab Booster</h1>
-          <p className="text-gray-400 mt-1">Sign in to your cockpit</p>
+        <div className="mb-8 text-center">
+          <p className="section-label mb-3">AI Collaboration Booster</p>
+          <h1 className="text-3xl font-semibold text-zinc-900">Workspace Access</h1>
+          <p className="mt-2 text-sm text-zinc-600">Sign in with a demo profile or enter credentials manually.</p>
         </div>
 
         <Card>
           <CardHeader>
-            <h2 className="font-semibold text-gray-800">Quick Login — Demo Users</h2>
-            <p className="text-xs text-gray-500 mt-1">All passwords: demo1234</p>
+            <h2 className="text-sm font-semibold uppercase tracking-[0.16em] text-zinc-700">Quick Login</h2>
+            <p className="mt-1 text-xs text-zinc-500">All demo accounts use password: demo1234</p>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 gap-2 mb-4">
+            <div className="mb-4 grid grid-cols-1 gap-2">
               {DEMO_USERS.map((u) => (
                 <button
                   key={u.username}
                   onClick={() => handleLogin(u.username)}
                   disabled={loading}
-                  className="flex items-center gap-3 px-4 py-2.5 rounded-lg border border-gray-200 hover:border-blue-400 hover:bg-blue-50 transition-colors text-left disabled:opacity-50"
+                  className="flex items-center justify-between rounded-lg border border-zinc-200 bg-white px-4 py-3 text-left transition-all hover:border-red-300 hover:bg-zinc-50 disabled:opacity-50"
                 >
-                  <span className="text-xl">{u.icon}</span>
                   <div>
-                    <p className="font-medium text-sm text-gray-900">{u.label}</p>
-                    <p className="text-xs text-gray-500">{u.role}</p>
+                    <p className="text-sm font-medium text-zinc-900">{u.label}</p>
+                    <p className="text-xs text-zinc-500">{u.role}</p>
                   </div>
+                  <span className="text-xs uppercase tracking-[0.18em] text-zinc-500">Use</span>
                 </button>
               ))}
             </div>
 
             <div className="relative my-4">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-200" />
+                <div className="w-full border-t border-zinc-200" />
               </div>
-              <div className="relative flex justify-center text-xs text-gray-400">
-                <span className="bg-white px-2">or enter manually</span>
+              <div className="relative flex justify-center text-xs text-zinc-500">
+                <span className="bg-white px-2">Manual login</span>
               </div>
             </div>
 
@@ -92,21 +92,17 @@ export default function LoginPage() {
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 placeholder="Username"
-                className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-sm text-zinc-900 placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-red-500/60"
               />
               <input
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Password"
-                className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-sm text-zinc-900 placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-red-500/60"
               />
-              {error && <p className="text-sm text-red-600">{error}</p>}
-              <Button
-                onClick={() => handleLogin()}
-                disabled={loading}
-                className="w-full"
-              >
+              {error && <p className="text-sm text-red-700">{error}</p>}
+              <Button onClick={() => handleLogin()} disabled={loading} className="w-full">
                 {loading ? "Signing in..." : "Sign In"}
               </Button>
             </div>

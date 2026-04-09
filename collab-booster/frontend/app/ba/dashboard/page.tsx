@@ -22,10 +22,7 @@ export default function BADashboard() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    Promise.all([
-      api.get<Dashboard>("/api/ba/dashboard"),
-      api.get<Ticket[]>("/api/ba/tickets"),
-    ])
+    Promise.all([api.get<Dashboard>("/api/ba/dashboard"), api.get<Ticket[]>("/api/ba/tickets")])
       .then(([d, t]) => {
         setDashboard(d);
         setTickets(t);
@@ -35,76 +32,68 @@ export default function BADashboard() {
 
   if (loading)
     return (
-      <div className="p-8">
+      <div className="page-wrap">
         <LoadingSpinner label="Loading dashboard..." />
       </div>
     );
 
-  const columns: { key: string; label: string; color: string }[] = [
-    { key: "todo", label: "To Do", color: "bg-gray-100" },
-    { key: "in_progress", label: "In Progress", color: "bg-blue-50" },
-    { key: "in_review", label: "In Review", color: "bg-purple-50" },
-    { key: "done", label: "Done", color: "bg-green-50" },
+  const columns: { key: string; label: string }[] = [
+    { key: "todo", label: "To Do" },
+    { key: "in_progress", label: "In Progress" },
+    { key: "in_review", label: "In Review" },
+    { key: "done", label: "Done" },
   ];
 
   return (
-    <div className="p-8">
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">Sprint Dashboard</h1>
+    <div className="page-wrap max-w-none">
+      <p className="section-label mb-2">Business Analyst</p>
+      <h1 className="mb-8 text-3xl font-semibold text-zinc-900">Sprint Dashboard</h1>
 
       {dashboard && (
-        <div className="grid grid-cols-4 gap-4 mb-8">
+        <div className="mb-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           <Card>
             <CardContent className="py-4 text-center">
-              <p className="text-3xl font-bold text-blue-600">
-                {dashboard.completion_percentage}%
-              </p>
-              <p className="text-sm text-gray-500 mt-1">Completion</p>
+              <p className="text-3xl font-bold text-red-700">{dashboard.completion_percentage}%</p>
+              <p className="mt-1 text-sm text-zinc-500">Completion</p>
             </CardContent>
           </Card>
           <Card>
             <CardContent className="py-4 text-center">
-              <p className="text-3xl font-bold text-gray-900">
-                {dashboard.total_tickets}
-              </p>
-              <p className="text-sm text-gray-500 mt-1">Total Tickets</p>
+              <p className="text-3xl font-bold text-zinc-900">{dashboard.total_tickets}</p>
+              <p className="mt-1 text-sm text-zinc-500">Total Tickets</p>
             </CardContent>
           </Card>
           <Card>
             <CardContent className="py-4 text-center">
-              <p className="text-3xl font-bold text-green-600">
-                {dashboard.done_story_points}
-              </p>
-              <p className="text-sm text-gray-500 mt-1">Points Done</p>
+              <p className="text-3xl font-bold text-red-700">{dashboard.done_story_points}</p>
+              <p className="mt-1 text-sm text-zinc-500">Points Done</p>
             </CardContent>
           </Card>
           <Card>
             <CardContent className="py-4 text-center">
-              <p className="text-3xl font-bold text-orange-600">
+              <p className="text-3xl font-bold text-red-700">
                 {dashboard.total_story_points - dashboard.done_story_points}
               </p>
-              <p className="text-sm text-gray-500 mt-1">Points Remaining</p>
+              <p className="mt-1 text-sm text-zinc-500">Points Remaining</p>
             </CardContent>
           </Card>
         </div>
       )}
 
-      {/* Sprint Board */}
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid gap-4 xl:grid-cols-4">
         {columns.map((col) => {
           const colTickets = tickets.filter((t) => t.status === col.key);
           return (
-            <div key={col.key}>
-              <div className="flex items-center gap-2 mb-3">
-                <h3 className="font-semibold text-gray-700">{col.label}</h3>
+            <div key={col.key} className="rounded-xl border border-zinc-200 bg-white p-3">
+              <div className="mb-3 flex items-center gap-2">
+                <h3 className="font-semibold text-zinc-800">{col.label}</h3>
                 <Badge variant="secondary">{colTickets.length}</Badge>
               </div>
-              <div className={`rounded-xl p-3 min-h-40 ${col.color} space-y-3`}>
+              <div className="min-h-40 space-y-3">
                 {colTickets.map((t) => (
                   <TicketCard key={t.id} ticket={t} basePath="/ba/tickets" />
                 ))}
-                {colTickets.length === 0 && (
-                  <p className="text-xs text-gray-400 text-center pt-8">Empty</p>
-                )}
+                {colTickets.length === 0 && <p className="pt-8 text-center text-xs text-zinc-500">Empty</p>}
               </div>
             </div>
           );

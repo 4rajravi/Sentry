@@ -7,27 +7,27 @@ import { Card, CardContent } from "@/components/ui/card";
 const ACTIONS = [
   {
     href: "/ba/dashboard",
-    icon: "📊",
-    title: "Show me project progress",
-    description: "Sprint board, ticket status, velocity and completion estimates",
+    code: "01",
+    title: "Project progress",
+    description: "Sprint board, ticket status, velocity, and completion estimates.",
   },
   {
     href: "/ba/chat",
-    icon: "💬",
-    title: "Chat with the codebase",
-    description: "Ask questions about what the code does — plain English answers",
+    code: "02",
+    title: "Codebase Q and A",
+    description: "Ask what the system does and get plain-language explanations.",
   },
   {
     href: "/ba/create-tickets",
-    icon: "📝",
-    title: "Create tickets from requirements",
-    description: "Paste your requirements doc → AI generates Jira tickets",
+    code: "03",
+    title: "Create tickets",
+    description: "Transform requirement documents into structured ticket proposals.",
   },
   {
     href: "/ba/generate-doc",
-    icon: "📄",
-    title: "Generate business docs from code",
-    description: "Select files → AI writes feature summaries, BRDs, process flows",
+    code: "04",
+    title: "Generate business docs",
+    description: "Produce summaries, BRDs, and process notes from implementation context.",
   },
 ];
 
@@ -35,28 +35,23 @@ export default function BAHome() {
   const { user } = useAuth("business_analyst");
 
   return (
-    <div className="p-8 max-w-4xl mx-auto">
+    <div className="page-wrap">
       <div className="mb-10">
-        <h1 className="text-3xl font-bold text-gray-900">
-          Good morning, {user?.full_name?.split(" ")[0]} 👋
+        <p className="section-label mb-2">Business Analyst Workspace</p>
+        <h1 className="text-4xl font-semibold text-zinc-900">
+          Welcome back, {user?.full_name?.split(" ")[0]}
         </h1>
-        <p className="text-gray-500 mt-2 text-lg">
-          How would you like to start your day?
-        </p>
+        <p className="mt-3 text-zinc-600">Pick the workflow you want to run first.</p>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid gap-4 md:grid-cols-2">
         {ACTIONS.map((action) => (
           <Link key={action.href} href={action.href}>
-            <Card className="hover:border-blue-400 hover:shadow-lg transition-all cursor-pointer h-full">
+            <Card className="h-full cursor-pointer">
               <CardContent className="py-6">
-                <div className="text-4xl mb-4">{action.icon}</div>
-                <h3 className="font-semibold text-gray-900 text-lg mb-2">
-                  {action.title}
-                </h3>
-                <p className="text-gray-500 text-sm leading-relaxed">
-                  {action.description}
-                </p>
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-red-700">{action.code}</p>
+                <h3 className="mt-3 text-xl font-semibold text-zinc-900">{action.title}</h3>
+                <p className="mt-2 text-sm leading-relaxed text-zinc-600">{action.description}</p>
               </CardContent>
             </Card>
           </Link>

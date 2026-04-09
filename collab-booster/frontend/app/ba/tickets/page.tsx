@@ -19,16 +19,17 @@ export default function BATickets() {
 
   if (loading)
     return (
-      <div className="p-8">
+      <div className="page-wrap">
         <LoadingSpinner label="Loading tickets..." />
       </div>
     );
 
   return (
-    <div className="p-8 max-w-3xl">
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">My Tickets</h1>
+    <div className="page-wrap max-w-4xl">
+      <p className="section-label mb-2">Business Analyst</p>
+      <h1 className="mb-6 text-3xl font-semibold text-zinc-900">My Tickets</h1>
       {tickets.length === 0 ? (
-        <p className="text-gray-500">No tickets found.</p>
+        <p className="text-zinc-600">No tickets found.</p>
       ) : (
         <div className="space-y-3">
           {tickets.map((t) => (

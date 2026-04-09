@@ -26,43 +26,35 @@ const PRIORITY_VARIANT: Record<string, "default" | "danger" | "warning" | "secon
 
 interface TicketCardProps {
   ticket: Ticket;
-  basePath: string; // "/ba/tickets" or "/dev/tickets"
+  basePath: string;
 }
 
 export function TicketCard({ ticket, basePath }: TicketCardProps) {
   return (
     <Link href={`${basePath}/${ticket.id}`}>
-      <Card className="hover:border-blue-300 hover:shadow-md transition-all cursor-pointer">
+      <Card className="cursor-pointer">
         <CardContent className="py-4">
           <div className="flex items-start justify-between gap-3">
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 mb-1">
-                <span className="text-xs font-mono text-gray-400">{ticket.id}</span>
-                <Badge variant={STATUS_VARIANT[ticket.status]}>
-                  {STATUS_LABEL[ticket.status]}
-                </Badge>
-                <Badge variant={PRIORITY_VARIANT[ticket.priority]}>
-                  {ticket.priority}
-                </Badge>
+            <div className="min-w-0 flex-1">
+              <div className="mb-1 flex items-center gap-2">
+                <span className="font-mono text-xs text-zinc-500">{ticket.id}</span>
+                <Badge variant={STATUS_VARIANT[ticket.status]}>{STATUS_LABEL[ticket.status]}</Badge>
+                <Badge variant={PRIORITY_VARIANT[ticket.priority]}>{ticket.priority}</Badge>
               </div>
-              <p className="font-medium text-gray-900 truncate">{ticket.title}</p>
-              <p className="text-sm text-gray-500 mt-1 line-clamp-2">
-                {ticket.description}
-              </p>
+              <p className="truncate text-base font-medium text-zinc-900">{ticket.title}</p>
+              <p className="mt-1 line-clamp-2 text-sm text-zinc-600">{ticket.description}</p>
             </div>
-            <div className="text-right shrink-0">
+            <div className="shrink-0 text-right">
               {ticket.story_points && (
-                <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-blue-50 text-blue-700 text-sm font-bold">
+                <span className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-red-500/40 bg-red-500/10 text-sm font-bold text-red-700">
                   {ticket.story_points}
                 </span>
               )}
-              {ticket.sprint && (
-                <p className="text-xs text-gray-400 mt-1">{ticket.sprint}</p>
-              )}
+              {ticket.sprint && <p className="mt-1 text-xs text-zinc-500">{ticket.sprint}</p>}
             </div>
           </div>
           {ticket.commits.length > 0 && (
-            <p className="text-xs text-gray-400 mt-3">
+            <p className="mt-3 text-xs text-zinc-500">
               {ticket.commits.length} commit{ticket.commits.length !== 1 ? "s" : ""}
             </p>
           )}

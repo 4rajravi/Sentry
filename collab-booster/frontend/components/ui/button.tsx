@@ -3,20 +3,25 @@ import { clsx } from "clsx";
 import { ButtonHTMLAttributes } from "react";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center rounded-lg font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed",
+  "inline-flex items-center justify-center rounded-lg border text-sm font-semibold tracking-wide transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:ring-offset-2 focus:ring-offset-white disabled:cursor-not-allowed disabled:opacity-50",
   {
     variants: {
       variant: {
-        default: "bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500",
-        secondary: "bg-gray-100 text-gray-900 hover:bg-gray-200 focus:ring-gray-400",
-        ghost: "hover:bg-gray-100 text-gray-700 focus:ring-gray-400",
-        danger: "bg-red-600 text-white hover:bg-red-700 focus:ring-red-500",
-        success: "bg-green-600 text-white hover:bg-green-700 focus:ring-green-500",
+        default:
+          "border-red-700 bg-red-700 text-white hover:bg-red-600 hover:border-red-600 active:scale-[0.99]",
+        secondary:
+          "border-zinc-300 bg-white text-zinc-900 hover:bg-zinc-50",
+        ghost:
+          "border-transparent bg-transparent text-zinc-700 hover:text-zinc-900 hover:bg-zinc-100",
+        danger:
+          "border-red-400 bg-red-50 text-red-700 hover:bg-red-100",
+        success:
+          "border-zinc-300 bg-zinc-50 text-zinc-900 hover:bg-zinc-100",
       },
       size: {
-        sm: "px-3 py-1.5 text-sm",
-        default: "px-4 py-2 text-sm",
-        lg: "px-6 py-3 text-base",
+        sm: "h-8 px-3",
+        default: "h-10 px-5",
+        lg: "h-12 px-7 text-base",
       },
     },
     defaultVariants: { variant: "default", size: "default" },

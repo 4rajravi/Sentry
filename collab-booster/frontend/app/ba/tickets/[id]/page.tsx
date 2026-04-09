@@ -31,10 +31,7 @@ export default function BATicketDetail() {
   const explainCommits = async () => {
     setExplaining(true);
     try {
-      const res = await api.post<ExplainResponse>(
-        `/api/ba/tickets/${id}/explain-commits`,
-        {}
-      );
+      const res = await api.post<ExplainResponse>(`/api/ba/tickets/${id}/explain-commits`, {});
       setExplanations(res.commit_explanations);
     } finally {
       setExplaining(false);
@@ -43,18 +40,17 @@ export default function BATicketDetail() {
 
   if (loading)
     return (
-      <div className="p-8">
+      <div className="page-wrap">
         <LoadingSpinner label="Loading ticket..." />
       </div>
     );
-  if (!ticket)
-    return <div className="p-8 text-red-600">Ticket not found.</div>;
+  if (ticket === null) return <div className="page-wrap text-red-700">Ticket not found.</div>;
 
   return (
-    <div className="p-8 max-w-3xl">
+    <div className="page-wrap max-w-4xl">
       <div className="mb-6">
-        <div className="flex items-center gap-3 mb-2">
-          <span className="font-mono text-sm text-gray-400">{ticket.id}</span>
+        <div className="mb-2 flex items-center gap-3">
+          <span className="font-mono text-sm text-zinc-500">{ticket.id}</span>
           <Badge
             variant={
               ticket.status === "done"
@@ -70,87 +66,61 @@ export default function BATicketDetail() {
           </Badge>
           <Badge variant="secondary">{ticket.story_points} pts</Badge>
         </div>
-        <h1 className="text-2xl font-bold text-gray-900">{ticket.title}</h1>
-        <p className="text-gray-500 mt-1">{ticket.sprint}</p>
+        <h1 className="text-3xl font-semibold text-zinc-900">{ticket.title}</h1>
+        <p className="mt-1 text-zinc-500">{ticket.sprint}</p>
       </div>
 
       <div className="space-y-4">
         <Card>
           <CardHeader>
-            <h2 className="font-semibold text-gray-800">Description</h2>
+            <h2 className="text-sm font-semibold uppercase tracking-[0.16em] text-zinc-700">Description</h2>
           </CardHeader>
           <CardContent>
-            <p className="text-gray-700 leading-relaxed">{ticket.description}</p>
+            <p className="leading-relaxed text-zinc-700">{ticket.description}</p>
           </CardContent>
         </Card>
 
         {ticket.acceptance_criteria && (
           <Card>
             <CardHeader>
-              <h2 className="font-semibold text-gray-800">Acceptance Criteria</h2>
+              <h2 className="text-sm font-semibold uppercase tracking-[0.16em] text-zinc-700">Acceptance Criteria</h2>
             </CardHeader>
             <CardContent>
-              <pre className="text-sm text-gray-700 whitespace-pre-wrap font-sans">
-                {ticket.acceptance_criteria}
-              </pre>
+              <pre className="whitespace-pre-wrap font-sans text-sm text-zinc-700">{ticket.acceptance_criteria}</pre>
             </CardContent>
           </Card>
         )}
 
         <Card>
           <CardHeader>
-            <div className="flex items-center justify-between">
-              <h2 className="font-semibold text-gray-800">
-                Commits ({ticket.commits.length})
-              </h2>
+            <div className="flex items-center justify-between gap-3">
+              <h2 className="text-sm font-semibold uppercase tracking-[0.16em] text-zinc-700">Commits ({ticket.commits.length})</h2>
               {ticket.commits.length > 0 && (
-                <Button
-                  size="sm"
-                  variant="secondary"
-                  onClick={explainCommits}
-                  disabled={explaining}
-                >
-                  {explaining ? "Explaining..." : "🤖 Explain in Business Language"}
+                <Button size="sm" variant="secondary" onClick={explainCommits} disabled={explaining}>
+                  {explaining ? "Explaining..." : "Explain in Business Language"}
                 </Button>
               )}
             </div>
           </CardHeader>
           <CardContent>
             {ticket.commits.length === 0 ? (
-              <p className="text-gray-400 text-sm">No commits linked yet.</p>
+              <p className="text-sm text-zinc-500">No commits linked yet.</p>
             ) : (
               <div className="space-y-4">
                 {ticket.commits.map((commit, i) => {
                   const explanation = explanations[i];
                   return (
-                    <div
-                      key={commit.id}
-                      className="border border-gray-100 rounded-lg p-4"
-                    >
-                      <p className="font-mono text-xs text-gray-400 mb-1">
-                        {commit.commit_sha.slice(0, 8)}
-                      </p>
-                      <p className="text-sm text-gray-700 mb-2">
-                        {commit.commit_message}
-                      </p>
+                    <div key={commit.id} className="rounded-lg border border-zinc-200 p-4">
+                      <p className="mb-1 font-mono text-xs text-zinc-500">{commit.commit_sha.slice(0, 8)}</p>
+                      <p className="mb-2 text-sm text-zinc-700">{commit.commit_message}</p>
                       {commit.files_changed && (
-                        <p className="text-xs text-gray-400">
-                          Files: {commit.files_changed.join(", ")}
-                        </p>
+                        <p className="text-xs text-zinc-500">Files: {commit.files_changed.join(", ")}</p>
                       )}
                       {explanation && (
-                        <div className="mt-3 bg-blue-50 rounded-lg p-3 border border-blue-100">
-                          <p className="text-xs font-semibold text-blue-700 mb-1">
-                            🤖 Business Explanation
-                          </p>
-                          <p className="text-sm text-blue-900">
-                            {explanation.business_summary}
-                          </p>
-                          {explanation.impact && (
-                            <p className="text-xs text-blue-700 mt-1">
-                              Impact: {explanation.impact}
-                            </p>
-                          )}
+                        <div className="mt-3 rounded-lg border border-red-300 bg-red-50 p-3">
+                          <p className="mb-1 text-xs font-semibold uppercase tracking-[0.14em] text-red-700">Business Explanation</p>
+                          <p className="text-sm text-red-700">{explanation.business_summary}</p>
+                          {explanation.impact && <p className="mt-1 text-xs text-red-700">Impact: {explanation.impact}</p>}
                         </div>
                       )}
                     </div>

@@ -7,12 +7,11 @@ export default function BAChat() {
   const { messages, loading, sendMessage } = useChat("/api/ba/chat");
 
   return (
-    <div className="flex flex-col h-screen">
-      <div className="px-8 py-5 border-b border-gray-200 bg-white">
-        <h1 className="text-xl font-bold text-gray-900">💬 Chat with the Codebase</h1>
-        <p className="text-sm text-gray-500 mt-0.5">
-          Ask anything — I&apos;ll explain in plain business language, no code
-        </p>
+    <div className="flex h-screen flex-col">
+      <div className="border-b border-zinc-200 bg-white px-8 py-5">
+        <p className="section-label mb-1">Business Analyst</p>
+        <h1 className="text-xl font-semibold text-zinc-900">Chat with the Codebase</h1>
+        <p className="mt-0.5 text-sm text-zinc-600">Ask anything and get business-language explanations.</p>
       </div>
       <div className="flex-1 overflow-hidden">
         <ChatWindow

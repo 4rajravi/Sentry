@@ -16,7 +16,7 @@ export default function BALayout({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
+    <div className="flex min-h-screen bg-white">
       <Sidebar role="ba" fullName={user.full_name} onLogout={logout} />
       <main className="flex-1 overflow-auto">{children}</main>
     </div>

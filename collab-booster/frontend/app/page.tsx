@@ -2,9 +2,9 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { getCurrentUser } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
-import Link from "next/link";
 
 export default function Home() {
   const router = useRouter();
@@ -17,47 +17,49 @@ export default function Home() {
   }, [router]);
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-950 to-gray-900 flex items-center justify-center p-6">
-      <div className="max-w-2xl w-full text-center">
-        <div className="mb-8">
-          <span className="text-6xl">🤝</span>
-        </div>
-        <h1 className="text-4xl font-bold text-white mb-4">
-          AI Collaboration Booster
-        </h1>
-        <p className="text-lg text-gray-300 mb-8 leading-relaxed">
-          Bridging the gap between Business Analysts and Developers using AI.
-          Understand code, translate requirements, explain changes — in the language your team speaks.
-        </p>
-
-        <div className="grid grid-cols-2 gap-4 mb-10">
-          <div className="bg-white/10 backdrop-blur rounded-xl p-5 text-left border border-white/10">
-            <div className="text-3xl mb-3">📊</div>
-            <h3 className="font-semibold text-white mb-2">Business Analyst</h3>
-            <ul className="text-sm text-gray-300 space-y-1">
-              <li>• Sprint progress dashboard</li>
-              <li>• Commit explanations in plain English</li>
-              <li>• Generate business docs from code</li>
-              <li>• Requirements → Jira tickets</li>
-            </ul>
+    <main className="min-h-screen">
+      <div className="container flex min-h-screen items-center py-20">
+        <div className="grid w-full gap-10 lg:grid-cols-[1.2fr_0.8fr]">
+          <div>
+            <p className="section-label mb-6">AI Collaboration Booster</p>
+            <h1 className="text-balance text-5xl font-semibold leading-[1.02] text-zinc-900 md:text-7xl">
+              Sharper handoffs between business and engineering.
+            </h1>
+            <p className="mt-6 max-w-2xl text-lg leading-relaxed text-zinc-600">
+              Convert requirements into implementation-ready tickets and transform code changes into clear business language.
+              Designed for teams that want speed without losing context.
+            </p>
+            <div className="mt-9 flex items-center gap-4">
+              <Link href="/login">
+                <Button size="lg">Enter Workspace</Button>
+              </Link>
+            </div>
           </div>
-          <div className="bg-white/10 backdrop-blur rounded-xl p-5 text-left border border-white/10">
-            <div className="text-3xl mb-3">💻</div>
-            <h3 className="font-semibold text-white mb-2">Developer</h3>
-            <ul className="text-sm text-gray-300 space-y-1">
-              <li>• Implementation guidance from tickets</li>
-              <li>• Vacation catchup summaries</li>
-              <li>• New developer onboarding</li>
-              <li>• Technical code Q&A</li>
-            </ul>
+
+          <div className="app-surface rounded-xl p-6">
+            <p className="section-label">Capabilities</p>
+            <div className="mt-6 space-y-5">
+              <div>
+                <p className="text-sm font-semibold uppercase tracking-[0.16em] text-zinc-700">Business Analyst</p>
+                <ul className="mt-2 space-y-2 text-sm text-zinc-600">
+                  <li>Sprint status and delivery visibility</li>
+                  <li>Code-to-business explanations</li>
+                  <li>Automated documentation generation</li>
+                  <li>Requirement-to-ticket conversion</li>
+                </ul>
+              </div>
+              <div className="border-t border-zinc-200 pt-5">
+                <p className="text-sm font-semibold uppercase tracking-[0.16em] text-zinc-700">Developer</p>
+                <ul className="mt-2 space-y-2 text-sm text-zinc-600">
+                  <li>Implementation guidance per ticket</li>
+                  <li>Catch-up summaries after time away</li>
+                  <li>Onboarding from real code context</li>
+                  <li>Technical Q and A over the codebase</li>
+                </ul>
+              </div>
+            </div>
           </div>
         </div>
-
-        <Link href="/login">
-          <Button size="lg" className="px-10">
-            Get Started →
-          </Button>
-        </Link>
       </div>
     </main>
   );
