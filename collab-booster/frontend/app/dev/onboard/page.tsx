@@ -10,6 +10,7 @@ interface OnboardingGuide {
   project_overview: string;
   architecture_summary: string;
   key_files: { path: string; purpose: string }[];
+  recent_commits: { commit_id: string; summary: string; date?: string | null; author?: string | null }[];
   getting_started_steps: string[];
   assigned_tickets_guidance: string;
   recommended_reading_order: string[];
@@ -122,6 +123,27 @@ export default function Onboarding() {
               <p className="leading-relaxed text-zinc-700">{guide.assigned_tickets_guidance}</p>
             </CardContent>
           </Card>
+
+          {guide.recent_commits && guide.recent_commits.length > 0 && (
+            <Card>
+              <CardHeader>
+                <h2 className="text-sm font-semibold uppercase tracking-[0.16em] text-zinc-700">Recent Commits</h2>
+              </CardHeader>
+              <CardContent>
+                <ul className="space-y-2">
+                  {guide.recent_commits.map((commit, i) => (
+                    <li key={`${commit.commit_id}-${i}`} className="text-sm text-zinc-700">
+                      <span className="font-mono text-xs font-semibold text-red-700">{commit.commit_id}</span>{" "}
+                      - {commit.summary}
+                      {(commit.date || commit.author) && (
+                        <span className="text-zinc-500"> | {commit.date || "-"} | by {commit.author || "-"}</span>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </CardContent>
+            </Card>
+          )}
 
           <Button variant="secondary" onClick={handleGenerate}>
             Regenerate Guide

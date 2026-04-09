@@ -7,6 +7,7 @@ from langgraph.prebuilt import ToolNode
 from src.agents.outputs.structured import OnboardingGuide
 from src.agents.state import AgentState
 from src.agents.tools.file_tool import list_files, read_file
+from src.agents.tools.git_tool import git_log
 from src.agents.tools.jira_tool import jira_query
 from src.agents.tools.rag_tool import rag_search
 from src.config import settings
@@ -17,15 +18,17 @@ Your goal is to create a personalized onboarding guide that:
 2. Identifies the most important files to read first
 3. Connects their assigned tickets to the existing code patterns
 4. Gives concrete getting-started steps
+5. Summarizes key recent commits with commit IDs
 
 RULES:
 - Be encouraging and concrete
 - Reference real files and patterns in the repo
 - Prioritize their assigned tickets as context
 - Include a recommended reading order
+- Include recent_commits with real commit IDs and short summaries grounded in git log
 """
 
-tools = [rag_search, list_files, read_file, jira_query]
+tools = [rag_search, list_files, read_file, jira_query, git_log]
 
 
 def create_onboarding_graph():
@@ -51,7 +54,7 @@ def create_onboarding_graph():
                 content=(
                     f"New developer (user_id={user_id}) just joined. "
                     f"Explore the project structure, understand the architecture, "
-                    f"and look up their assigned Jira tickets."
+                    f"look up their assigned Jira tickets, and gather recent commit history."
                 )
             ),
         ] + state["messages"]

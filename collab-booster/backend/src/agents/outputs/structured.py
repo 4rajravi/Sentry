@@ -58,10 +58,18 @@ class OnboardingKeyFile(BaseModel):
     purpose: str
 
 
+class OnboardingCommitSummary(BaseModel):
+    commit_id: str
+    summary: str
+    date: str | None = None
+    author: str | None = None
+
+
 class OnboardingGuide(BaseModel):
     project_overview: str
     architecture_summary: str
     key_files: list[OnboardingKeyFile]
+    recent_commits: list[OnboardingCommitSummary]
     getting_started_steps: list[str]
     assigned_tickets_guidance: str
     recommended_reading_order: list[str]
