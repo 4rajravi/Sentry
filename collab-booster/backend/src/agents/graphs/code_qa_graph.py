@@ -31,6 +31,9 @@ RULES:
 - Suggest next steps when relevant
 - Ground every answer in repository evidence from tools; do not answer from generic software assumptions
 - For commit/date/history questions, call git tools and answer directly with the actual commit info
+- If ticket context is provided, treat it as authoritative scope and do not ask the user for basic context already present.
+- If asked for use cases or test cases, generate them directly from ticket context + repo evidence (and technical doc excerpt if present).
+- If some file paths in context are missing, use nearest matching existing files from repo evidence and continue.
 """
 
 tools = [rag_search, read_file, list_files, git_log, git_show]

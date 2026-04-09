@@ -1,4 +1,6 @@
 """Developer cockpit API endpoints."""
+from pathlib import Path
+
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from sqlalchemy import select
@@ -14,7 +16,7 @@ from src.agents.service import (
 from src.auth.dependencies import require_role
 from src.auth.models import User, UserRole
 from src.common.database import get_db
-from src.jira.models import JiraCommit
+from src.jira.models import JiraCommit, TicketStatus
 from src.jira.service import get_ticket, list_tickets
 from src.jira.tldr import fetch_tldr_text
 from src.repo.cloner import get_commit_details, list_repo_commits
@@ -22,6 +24,47 @@ from src.repo.context_service import resolve_runtime_repo_for_user
 
 router = APIRouter(prefix="/api/dev", tags=["dev-cockpit"])
 _require_dev = require_role(UserRole.DEVELOPER)
+
+
+def _resolve_affected_files(repo_path: str, affected_files: list[str] | None) -> list[str]:
+    """Resolve ticket file hints to existing repo paths when possible."""
+    if not affected_files:
+        return []
+    base = Path(repo_path)
+    all_files = [str(p.relative_to(base)) for p in base.rglob("*") if p.is_file()]
+    all_files_lc = {p.lower(): p for p in all_files}
+
+    resolved: list[str] = []
+    for raw in affected_files:
+        candidate = (raw or "").strip().replace("\\", "/")
+        if not candidate:
+            continue
+        direct = base / candidate
+        if direct.exists() and direct.is_file():
+            resolved.append(candidate)
+            continue
+        if candidate.lower() in all_files_lc:
+            resolved.append(all_files_lc[candidate.lower()])
+            continue
+        name = Path(candidate).name.lower()
+        by_name = next((p for p in all_files if Path(p).name.lower() == name), None)
+        if by_name:
+            resolved.append(by_name)
+            continue
+        if candidate.lower().startswith("src/"):
+            alt = candidate[4:]
+            if alt.lower() in all_files_lc:
+                resolved.append(all_files_lc[alt.lower()])
+                continue
+    # keep order, remove duplicates
+    seen = set()
+    deduped: list[str] = []
+    for item in resolved:
+        if item in seen:
+            continue
+        seen.add(item)
+        deduped.append(item)
+    return deduped
 
 
 class ChatRequest(BaseModel):
@@ -237,12 +280,23 @@ async def dev_chat(
     db: AsyncSession = Depends(get_db),
 ):
     """Chat with the codebase as a developer."""
+    repo_path, repo_id = await resolve_runtime_repo_for_user(db, current_user.id)
     question = body.question
-    if body.ticket_id:
-        ticket = await get_ticket(db, body.ticket_id)
+    ticket_id = body.ticket_id
+    if ticket_id is None:
+        # Fallback: use the developer's active assigned ticket when chat is opened from generic dev chat.
+        assigned = await list_tickets(db, assignee_id=current_user.id)
+        prioritized = [t for t in assigned if t.status in (TicketStatus.IN_PROGRESS, TicketStatus.TODO)]
+        chosen = prioritized[0] if prioritized else (assigned[0] if assigned else None)
+        if chosen:
+            ticket_id = chosen.id
+
+    if ticket_id:
+        ticket = await get_ticket(db, ticket_id)
         if ticket:
             tldr_excerpt = await fetch_tldr_text(ticket.technical_doc_link, max_chars=4000)
-            affected_files = ", ".join(ticket.affected_files or []) or "-"
+            resolved_files = _resolve_affected_files(repo_path, ticket.affected_files or [])
+            affected_files = ", ".join(resolved_files or (ticket.affected_files or [])) or "-"
             question = (
                 f"[Ticket Context]\n"
                 f"Ticket ID: {ticket.id}\n"
@@ -255,8 +309,7 @@ async def dev_chat(
                 f"[User Question]\n{question}"
             )
         else:
-            question = f"[Context: Working on ticket {body.ticket_id}] {question}"
-    repo_path, repo_id = await resolve_runtime_repo_for_user(db, current_user.id)
+            question = f"[Context: Working on ticket {ticket_id}] {question}"
     answer = await run_code_qa(
         question=question,
         user_role="developer",

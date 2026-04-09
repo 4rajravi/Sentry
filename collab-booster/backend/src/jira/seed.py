@@ -110,7 +110,7 @@ TICKETS = [
             "- Return estimated months and total repayment amount\n"
             "- Add tests for normal case and invalid payment edge case"
         ),
-        "affected_files": ["calculator.py", "tests/test_calculator.py", "README.md"],
+        "affected_files": ["calculator.py", "test_calculator.py", "README.md"],
     },
 ]
 
