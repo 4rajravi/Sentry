@@ -53,10 +53,15 @@ class CatchupSummary(BaseModel):
     narrative: str
 
 
+class OnboardingKeyFile(BaseModel):
+    path: str
+    purpose: str
+
+
 class OnboardingGuide(BaseModel):
     project_overview: str
     architecture_summary: str
-    key_files: list[dict]  # [{"path": ..., "purpose": ...}]
+    key_files: list[OnboardingKeyFile]
     getting_started_steps: list[str]
     assigned_tickets_guidance: str
     recommended_reading_order: list[str]

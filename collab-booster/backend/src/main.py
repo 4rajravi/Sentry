@@ -34,6 +34,7 @@ async def lifespan(app: FastAPI):
     from src.jira.seed import seed_database
     async with AsyncSessionLocal() as db:
         await seed_database(db)
+        await db.commit()
     logger.info("Demo data seeded")
 
     try:
@@ -49,6 +50,7 @@ async def lifespan(app: FastAPI):
         from src.common.database import AsyncSessionLocal
         async with AsyncSessionLocal() as db:
             had_active_repo = await cleanup_all_repo_state(db)
+            await db.commit()
             if had_active_repo:
                 from src.search.service import rebuild_bm25_from_qdrant
                 await rebuild_bm25_from_qdrant()

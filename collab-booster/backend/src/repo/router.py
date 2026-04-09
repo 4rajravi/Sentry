@@ -57,6 +57,11 @@ async def get_repo_context(
     db: AsyncSession = Depends(get_db),
 ):
     config = await get_or_create_repo_config(db, current_user.id)
+    if config.active_repo_path and not Path(config.active_repo_path).exists():
+        config.active_repo_id = None
+        config.active_repo_url = None
+        config.active_repo_path = None
+        await db.flush()
     github_username = await _fetch_github_username(config.github_access_token)
     return RepoContextResponse(
         github_connected=bool(config.github_access_token),

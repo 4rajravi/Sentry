@@ -7,7 +7,7 @@ from src.search.service import hybrid_search
 
 
 @tool
-async def rag_search(query: str, top_k: int = 5, chunk_type: str | None = None) -> str:
+async def rag_search(query: str, top_k: int = 3, chunk_type: str | None = None) -> str:
     """Search the codebase using hybrid BM25 + vector search.
 
     Args:
@@ -26,6 +26,6 @@ async def rag_search(query: str, top_k: int = 5, chunk_type: str | None = None) 
         formatted.append(
             f"**{r.file_path}**"
             + (f" (lines {r.start_line}-{r.end_line})" if r.start_line else "")
-            + f"\n```\n{r.body[:800]}\n```"
+            + f"\n```\n{r.body[:450]}\n```"
         )
     return "\n\n---\n\n".join(formatted)

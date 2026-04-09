@@ -20,14 +20,20 @@ const ACTIONS = [
     description: "Get technical answers with file-level guidance and direct references.",
   },
   {
-    href: "/dev/catchup",
+    href: "/dev/commits",
     code: "03",
+    title: "Commit explorer",
+    description: "Search commits, filter by file, inspect diffs, and explain code changes with AI.",
+  },
+  {
+    href: "/dev/catchup",
+    code: "04",
     title: "Catchup summary",
     description: "Review updates and decisions made while you were away.",
   },
   {
     href: "/dev/onboard",
-    code: "04",
+    code: "05",
     title: "Onboarding guide",
     description: "Generate a focused plan for understanding this project quickly.",
   },

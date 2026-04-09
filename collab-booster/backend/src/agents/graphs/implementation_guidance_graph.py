@@ -42,7 +42,7 @@ def create_implementation_guidance_graph():
 
     tool_node = ToolNode(tools)
 
-    def research_node(state: AgentState):
+    async def research_node(state: AgentState):
         ctx = state["context"]
         ticket = ctx.get("ticket", {})
         messages = [
@@ -58,7 +58,7 @@ def create_implementation_guidance_graph():
                 )
             ),
         ] + state["messages"]
-        response = llm_with_tools.invoke(messages)
+        response = await llm_with_tools.ainvoke(messages)
         return {"messages": [response]}
 
     def should_continue(state: AgentState):
@@ -67,10 +67,10 @@ def create_implementation_guidance_graph():
             return "tools"
         return "generate"
 
-    def generate_guidance(state: AgentState):
+    async def generate_guidance(state: AgentState):
         ctx = state["context"]
         ticket = ctx.get("ticket", {})
-        result = llm_structured.invoke(
+        result = await llm_structured.ainvoke(
             [SystemMessage(content=SYSTEM)]
             + state["messages"]
             + [

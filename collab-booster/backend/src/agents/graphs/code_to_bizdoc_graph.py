@@ -32,7 +32,7 @@ def create_code_to_bizdoc_graph():
         temperature=0.2,
     ).with_structured_output(BusinessDocument)
 
-    def generate_doc(state: AgentState):
+    async def generate_doc(state: AgentState):
         context = state["context"]
         code_content = context.get("code_content", "")
         doc_type = context.get("doc_type", "feature_summary")
@@ -47,7 +47,7 @@ def create_code_to_bizdoc_graph():
                 )
             ),
         ]
-        result = llm.invoke(messages)
+        result = await llm.ainvoke(messages)
         return {"output": result}
 
     graph = StateGraph(AgentState)

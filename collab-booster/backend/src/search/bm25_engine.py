@@ -27,6 +27,10 @@ class BM25Engine:
         self._ids = chunk_ids
         self._corpus = contents
         self._payloads = payloads
+        if not contents:
+            # Empty index is valid after cleanup/logout.
+            self._bm25 = None
+            return
         tokenized = [_tokenize(c) for c in contents]
         self._bm25 = BM25Okapi(tokenized)
 

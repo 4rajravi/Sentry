@@ -1,8 +1,13 @@
 """Agent invocation facade — the single entry point for all agent calls."""
+import logging
+from time import perf_counter
+
 from langchain_core.messages import HumanMessage
 
 from src.agents.state import AgentState
 from src.repo.runtime import repo_runtime_scope
+
+logger = logging.getLogger(__name__)
 
 
 async def run_code_qa(
@@ -24,7 +29,10 @@ async def run_code_qa(
         "output": None,
     }
     with repo_runtime_scope(user_id=user_id, repo_id=repo_id, repo_path=repo_path):
+        started = perf_counter()
         result = await code_qa_app.ainvoke(state)
+        elapsed = (perf_counter() - started) * 1000
+        logger.info("run_code_qa completed in %.1fms (user_id=%s)", elapsed, user_id)
     last = result["messages"][-1]
     return last.content if hasattr(last, "content") else str(last)
 

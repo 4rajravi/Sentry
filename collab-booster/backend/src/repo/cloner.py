@@ -1,6 +1,7 @@
 """Git repo cloner and file walker."""
 import os
 import tempfile
+from datetime import datetime
 from pathlib import Path
 from urllib.parse import quote
 
@@ -82,3 +83,84 @@ def get_git_commits(repo_path: str, max_count: int = 200) -> list[dict]:
             }
         )
     return commits
+
+
+def list_repo_commits(
+    repo_path: str,
+    *,
+    max_count: int = 200,
+    query: str | None = None,
+    file_path: str | None = None,
+) -> list[dict]:
+    """Return recent commits with optional text and file filters."""
+    repo = git.Repo(repo_path)
+    query_lc = query.lower().strip() if query else ""
+
+    commits = []
+    iter_kwargs: dict = {"max_count": max_count}
+    if file_path:
+        iter_kwargs["paths"] = file_path
+
+    for commit in repo.iter_commits(**iter_kwargs):
+        files_changed = list(commit.stats.files.keys())
+        item = {
+            "sha": commit.hexsha,
+            "short_sha": commit.hexsha[:8],
+            "message": commit.message.strip(),
+            "author": str(commit.author),
+            "date": _to_iso(commit.authored_datetime),
+            "files_changed": files_changed,
+            "files_changed_count": len(files_changed),
+        }
+
+        if query_lc:
+            haystack = " ".join(
+                [
+                    item["sha"],
+                    item["short_sha"],
+                    item["message"],
+                    item["author"],
+                    " ".join(files_changed),
+                ]
+            ).lower()
+            if query_lc not in haystack:
+                continue
+
+        commits.append(item)
+
+    return commits
+
+
+def get_commit_details(repo_path: str, commit_sha: str) -> dict:
+    """Return full commit details and patch text."""
+    repo = git.Repo(repo_path)
+    commit = repo.commit(commit_sha)
+    files_changed = list(commit.stats.files.keys())
+    parent = commit.parents[0].hexsha if commit.parents else None
+
+    # `--format=` returns only patch/stat output (without metadata header).
+    patch = repo.git.show(
+        commit.hexsha,
+        "--format=",
+        "--no-color",
+        "--patch",
+        "--stat",
+    )
+
+    return {
+        "sha": commit.hexsha,
+        "short_sha": commit.hexsha[:8],
+        "message": commit.message.strip(),
+        "author": str(commit.author),
+        "date": _to_iso(commit.authored_datetime),
+        "parent_sha": parent,
+        "files_changed": files_changed,
+        "files_changed_count": len(files_changed),
+        "patch": patch,
+    }
+
+
+def _to_iso(value: datetime | None) -> str | None:
+    if value is None:
+        return None
+    return value.isoformat()

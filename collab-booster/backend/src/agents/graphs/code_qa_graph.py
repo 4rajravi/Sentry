@@ -45,17 +45,23 @@ def create_code_qa_graph():
         api_key=settings.openai_api_key,
         temperature=0,
     ).bind_tools(tools, tool_choice="required")
+    llm_no_tools = ChatOpenAI(
+        model=settings.smart_model,
+        api_key=settings.openai_api_key,
+        temperature=0,
+    )
 
     tool_node = ToolNode(tools)
 
-    def agent_node(state: AgentState):
+    async def agent_node(state: AgentState):
         role = state.get("user_role", "developer")
         system_msg = BA_SYSTEM if role == "business_analyst" else DEV_SYSTEM
 
         messages = [SystemMessage(content=system_msg)] + state["messages"]
         has_tool_results = any(isinstance(m, ToolMessage) for m in state["messages"])
-        runner = llm if has_tool_results else llm_first
-        response = runner.invoke(messages)
+        tool_rounds = sum(1 for m in state["messages"] if isinstance(m, ToolMessage))
+        runner = llm_no_tools if tool_rounds >= 2 else (llm if has_tool_results else llm_first)
+        response = await runner.ainvoke(messages)
         return {"messages": [response]}
 
     def should_continue(state: AgentState):

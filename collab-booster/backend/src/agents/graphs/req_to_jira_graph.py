@@ -44,7 +44,7 @@ def create_req_to_jira_graph():
 
     tool_node = ToolNode(tools)
 
-    def research_node(state: AgentState):
+    async def research_node(state: AgentState):
         """First pass: use tools to research the codebase."""
         doc = state["context"].get("requirement_doc", "")
         messages = [
@@ -53,7 +53,7 @@ def create_req_to_jira_graph():
                 content=f"Analyze this requirement document and search the codebase for relevant files:\n\n{doc}"
             ),
         ] + state["messages"]
-        response = llm_with_tools.invoke(messages)
+        response = await llm_with_tools.ainvoke(messages)
         return {"messages": [response]}
 
     def should_continue(state: AgentState):
@@ -62,11 +62,11 @@ def create_req_to_jira_graph():
             return "tools"
         return "generate"
 
-    def generate_tickets(state: AgentState):
+    async def generate_tickets(state: AgentState):
         """Second pass: generate structured tickets from research."""
         doc = state["context"].get("requirement_doc", "")
         all_msgs = state["messages"]
-        result = llm_structured.invoke(
+        result = await llm_structured.ainvoke(
             [SystemMessage(content=SYSTEM)]
             + all_msgs
             + [

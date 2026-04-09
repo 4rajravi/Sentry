@@ -28,7 +28,7 @@ def create_commit_explainer_graph():
         temperature=0,
     ).with_structured_output(CommitExplanation)
 
-    def explain_node(state: AgentState):
+    async def explain_node(state: AgentState):
         context = state.get("context", {})
         commit_sha = context.get("commit_sha", "")
         commit_message = context.get("commit_message", "")
@@ -46,7 +46,7 @@ def create_commit_explainer_graph():
             SystemMessage(content=SYSTEM),
             HumanMessage(content=user_content),
         ]
-        result = llm.invoke(messages)
+        result = await llm.ainvoke(messages)
         return {"output": result, "messages": [HumanMessage(content=user_content)]}
 
     graph = StateGraph(AgentState)

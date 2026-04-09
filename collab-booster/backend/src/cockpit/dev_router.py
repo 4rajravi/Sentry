@@ -1,9 +1,10 @@
 """Developer cockpit API endpoints."""
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.agents.service import (
+    run_commit_explainer,
     run_code_qa,
     run_implementation_guidance,
     run_onboarding,
@@ -13,6 +14,7 @@ from src.auth.dependencies import require_role
 from src.auth.models import User, UserRole
 from src.common.database import get_db
 from src.jira.service import get_ticket, list_tickets
+from src.repo.cloner import get_commit_details, list_repo_commits
 from src.repo.context_service import resolve_runtime_repo_for_user
 
 router = APIRouter(prefix="/api/dev", tags=["dev-cockpit"])
@@ -27,6 +29,28 @@ class ChatRequest(BaseModel):
 class CatchupRequest(BaseModel):
     from_date: str
     to_date: str
+
+
+class CommitListItem(BaseModel):
+    sha: str
+    short_sha: str
+    message: str
+    author: str
+    date: str | None = None
+    files_changed: list[str]
+    files_changed_count: int
+
+
+class CommitDetailResponse(BaseModel):
+    sha: str
+    short_sha: str
+    message: str
+    author: str
+    date: str | None = None
+    parent_sha: str | None = None
+    files_changed: list[str]
+    files_changed_count: int
+    patch: str
 
 
 @router.get("/tickets")
@@ -106,6 +130,61 @@ async def onboarding(
     repo_path, repo_id = await resolve_runtime_repo_for_user(db, current_user.id)
     result = await run_onboarding(user_id=current_user.id, repo_path=repo_path, repo_id=repo_id)
     return result
+
+
+@router.get("/commits", response_model=list[CommitListItem])
+async def list_developer_commits(
+    q: str | None = None,
+    file_path: str | None = None,
+    limit: int = 200,
+    current_user: User = Depends(_require_dev),
+    db: AsyncSession = Depends(get_db),
+):
+    repo_path, _ = await resolve_runtime_repo_for_user(db, current_user.id)
+    safe_limit = min(max(limit, 1), 500)
+    try:
+        return list_repo_commits(
+            repo_path,
+            max_count=safe_limit,
+            query=q,
+            file_path=file_path,
+        )
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Failed to load commits: {e}")
+
+
+@router.get("/commits/{commit_sha}", response_model=CommitDetailResponse)
+async def get_developer_commit_detail(
+    commit_sha: str,
+    current_user: User = Depends(_require_dev),
+    db: AsyncSession = Depends(get_db),
+):
+    repo_path, _ = await resolve_runtime_repo_for_user(db, current_user.id)
+    try:
+        return get_commit_details(repo_path, commit_sha)
+    except Exception as e:
+        raise HTTPException(status_code=404, detail=f"Commit not found: {e}")
+
+
+@router.post("/commits/{commit_sha}/explain")
+async def explain_developer_commit(
+    commit_sha: str,
+    current_user: User = Depends(_require_dev),
+    db: AsyncSession = Depends(get_db),
+):
+    repo_path, _ = await resolve_runtime_repo_for_user(db, current_user.id)
+    try:
+        commit = get_commit_details(repo_path, commit_sha)
+    except Exception as e:
+        raise HTTPException(status_code=404, detail=f"Commit not found: {e}")
+
+    explanation = await run_commit_explainer(
+        commit_sha=commit["sha"],
+        commit_message=commit["message"],
+        files_changed=commit["files_changed"],
+        diff_summary=(commit["patch"] or "")[:4000],
+    )
+    return {"commit": commit, "explanation": explanation}
 
 
 @router.post("/chat")

@@ -43,7 +43,7 @@ def create_onboarding_graph():
 
     tool_node = ToolNode(tools)
 
-    def explore_node(state: AgentState):
+    async def explore_node(state: AgentState):
         user_id = state.get("user_id", "")
         messages = [
             SystemMessage(content=SYSTEM),
@@ -55,7 +55,7 @@ def create_onboarding_graph():
                 )
             ),
         ] + state["messages"]
-        response = llm_with_tools.invoke(messages)
+        response = await llm_with_tools.ainvoke(messages)
         return {"messages": [response]}
 
     def should_continue(state: AgentState):
@@ -64,8 +64,8 @@ def create_onboarding_graph():
             return "tools"
         return "generate"
 
-    def generate_guide(state: AgentState):
-        result = llm_structured.invoke(
+    async def generate_guide(state: AgentState):
+        result = await llm_structured.ainvoke(
             [SystemMessage(content=SYSTEM)]
             + state["messages"]
             + [HumanMessage(content="Now generate the complete personalized onboarding guide.")]

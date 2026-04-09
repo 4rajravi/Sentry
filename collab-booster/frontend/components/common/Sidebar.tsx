@@ -8,7 +8,7 @@ import { useRepoContext } from "@/hooks/useRepoContext";
 interface NavItem {
   href: string;
   label: string;
-  icon: "home" | "board" | "ticket" | "doc" | "create" | "chat" | "time" | "onboard";
+  icon: "home" | "board" | "ticket" | "doc" | "create" | "chat" | "time" | "onboard" | "commit";
 }
 
 interface SidebarProps {
@@ -29,6 +29,7 @@ const BA_NAV: NavItem[] = [
 const DEV_NAV: NavItem[] = [
   { href: "/dev", label: "Home", icon: "home" },
   { href: "/dev/tickets", label: "My Tickets", icon: "ticket" },
+  { href: "/dev/commits", label: "Commits", icon: "commit" },
   { href: "/dev/catchup", label: "Vacation Catchup", icon: "time" },
   { href: "/dev/onboard", label: "Onboarding", icon: "onboard" },
   { href: "/dev/chat", label: "Chat with Code", icon: "chat" },
@@ -93,6 +94,14 @@ function Icon({ name }: { name: NavItem["icon"] }) {
           <path d="M12 4v9" strokeWidth="1.8" />
           <path d="M8 9l4-5 4 5" strokeWidth="1.8" />
           <rect x="4" y="14" width="16" height="6" rx="2" strokeWidth="1.8" />
+        </svg>
+      );
+    case "commit":
+      return (
+        <svg viewBox="0 0 24 24" fill="none" className={base}>
+          <circle cx="6" cy="12" r="2.5" strokeWidth="1.8" />
+          <circle cx="18" cy="12" r="2.5" strokeWidth="1.8" />
+          <path d="M8.5 12h7" strokeWidth="1.8" />
         </svg>
       );
     default:

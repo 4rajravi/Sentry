@@ -41,7 +41,7 @@ def create_vacation_catchup_graph():
 
     tool_node = ToolNode(tools)
 
-    def gather_node(state: AgentState):
+    async def gather_node(state: AgentState):
         ctx = state["context"]
         from_date = ctx.get("from_date", "")
         to_date = ctx.get("to_date", "")
@@ -57,7 +57,7 @@ def create_vacation_catchup_graph():
                 )
             ),
         ] + state["messages"]
-        response = llm_with_tools.invoke(messages)
+        response = await llm_with_tools.ainvoke(messages)
         return {"messages": [response]}
 
     def should_continue(state: AgentState):
@@ -66,9 +66,9 @@ def create_vacation_catchup_graph():
             return "tools"
         return "summarize"
 
-    def summarize_node(state: AgentState):
+    async def summarize_node(state: AgentState):
         ctx = state["context"]
-        result = llm_structured.invoke(
+        result = await llm_structured.ainvoke(
             [SystemMessage(content=SYSTEM)]
             + state["messages"]
             + [
