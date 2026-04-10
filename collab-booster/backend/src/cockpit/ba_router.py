@@ -221,9 +221,6 @@ def _parse_list(value) -> list[str]:
     return []
 
 
-KNOWN_ASSIGNEE_USERNAMES = {"dev_alice", "dev_peter", "skleinke"}
-
-
 async def _resolve_assignee(
     db: AsyncSession,
     *,
@@ -232,19 +229,17 @@ async def _resolve_assignee(
 ) -> str | None:
     if assignee_id:
         user = await db.get(User, assignee_id)
-        if user and user.role == UserRole.DEVELOPER and user.username in KNOWN_ASSIGNEE_USERNAMES:
+        if user and user.role == UserRole.DEVELOPER:
             return user.id
 
     name = (assignee_name or "").strip()
     if not name:
         return None
 
-    # Try exact full-name/username match first within known assignees.
+    # Try exact full-name/username match across all developer users.
     result = await db.execute(select(User).where(User.role == UserRole.DEVELOPER))
     developers = result.scalars().all()
     for dev in developers:
-        if dev.username not in KNOWN_ASSIGNEE_USERNAMES:
-            continue
         if dev.full_name.lower() == name.lower() or dev.username.lower() == name.lower():
             return dev.id
 
@@ -296,7 +291,7 @@ async def get_assignees(
     result = await db.execute(
         select(User).where(User.role == UserRole.DEVELOPER).order_by(User.full_name)
     )
-    users = [u for u in result.scalars().all() if u.username in KNOWN_ASSIGNEE_USERNAMES]
+    users = result.scalars().all()
     return [AssigneeOption(id=u.id, name=u.full_name, username=u.username) for u in users]
 
 

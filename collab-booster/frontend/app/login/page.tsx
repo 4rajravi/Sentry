@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api";
 import { saveAuth } from "@/lib/auth";
@@ -102,6 +103,12 @@ export default function LoginPage() {
               <Button onClick={() => handleLogin()} disabled={loading} className="w-full">
                 {loading ? "Signing in..." : "Sign In"}
               </Button>
+              <p className="text-center text-sm text-zinc-600">
+                New here?{" "}
+                <Link href="/signup" className="font-semibold text-red-700 underline underline-offset-2">
+                  Sign up
+                </Link>
+              </p>
             </div>
           </CardContent>
         </Card>
