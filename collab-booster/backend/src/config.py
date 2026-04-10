@@ -28,6 +28,15 @@ class Settings(BaseSettings):
     github_client_secret: str = ""
     github_oauth_scope: str = "repo read:user"
 
+    # Google OAuth (for Google Docs import)
+    google_client_id: str = ""
+    google_client_secret: str = ""
+    google_oauth_scope: str = (
+        "openid email "
+        "https://www.googleapis.com/auth/documents "
+        "https://www.googleapis.com/auth/drive.file"
+    )
+
     model_config = {"env_file": ".env", "extra": "ignore"}
 
 

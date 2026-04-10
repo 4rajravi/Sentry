@@ -49,6 +49,7 @@ async def cleanup_repo_for_user(
     *,
     user_id: str,
     clear_github_token: bool = False,
+    clear_google_token: bool = False,
 ) -> bool:
     result = await db.execute(select(UserRepoConfig).where(UserRepoConfig.user_id == user_id))
     config = result.scalar_one_or_none()
@@ -66,6 +67,11 @@ async def cleanup_repo_for_user(
     config.active_repo_path = None
     if clear_github_token:
         config.github_access_token = None
+    if clear_google_token:
+        config.google_access_token = None
+        config.google_refresh_token = None
+        config.google_token_expires_at = None
+        config.google_email = None
     await db.flush()
     return had_active_repo
 
@@ -84,6 +90,10 @@ async def cleanup_all_repo_state(db: AsyncSession) -> bool:
         config.active_repo_url = None
         config.active_repo_path = None
         config.github_access_token = None
+        config.google_access_token = None
+        config.google_refresh_token = None
+        config.google_token_expires_at = None
+        config.google_email = None
 
     await db.flush()
     return had_active_repo

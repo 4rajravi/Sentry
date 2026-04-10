@@ -178,6 +178,7 @@ async def session_logout(
         db,
         user_id=current_user.id,
         clear_github_token=True,
+        clear_google_token=True,
     )
     if had_active_repo:
         await rebuild_bm25_from_qdrant()

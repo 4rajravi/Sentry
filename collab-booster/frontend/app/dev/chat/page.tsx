@@ -44,11 +44,6 @@ export default function DevChat() {
         <p className="mt-0.5 text-sm text-zinc-600">
           Ask technical questions and get file-level implementation guidance.
         </p>
-        {activeTicketId && (
-          <p className="mt-1 text-xs font-semibold uppercase tracking-[0.16em] text-red-700">
-            Using assigned ticket context: {activeTicketId}
-          </p>
-        )}
       </div>
       <div className="min-h-0 flex-1 overflow-hidden">
         <ChatWindow

@@ -119,6 +119,12 @@ export function Sidebar({ role, fullName, onLogout }: SidebarProps) {
       <div className="border-b border-zinc-200 px-6 py-5">
         <p className="section-label mb-2">{role === "ba" ? "Business Analyst" : "Developer"}</p>
         <h2 className="truncate text-lg font-semibold">{fullName}</h2>
+        <button
+          onClick={onLogout}
+          className="mt-2 text-xs font-semibold uppercase tracking-[0.14em] text-zinc-600 transition-colors hover:text-zinc-900"
+        >
+          Sign out
+        </button>
       </div>
 
       <div className="px-6 py-3 text-[11px] uppercase tracking-[0.2em] text-zinc-500">
@@ -155,15 +161,6 @@ export function Sidebar({ role, fullName, onLogout }: SidebarProps) {
           );
         })}
       </nav>
-
-      <div className="border-t border-zinc-200 px-6 py-4">
-        <button
-          onClick={onLogout}
-          className="text-sm text-zinc-600 transition-colors hover:text-zinc-900"
-        >
-          Sign out
-        </button>
-      </div>
     </aside>
   );
 }

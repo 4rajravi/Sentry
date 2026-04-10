@@ -35,6 +35,30 @@ async def lifespan(app: FastAPI):
                 "ADD COLUMN IF NOT EXISTS technical_doc_link TEXT"
             )
         )
+        await conn.execute(
+            text(
+                "ALTER TABLE user_repo_configs "
+                "ADD COLUMN IF NOT EXISTS google_access_token TEXT"
+            )
+        )
+        await conn.execute(
+            text(
+                "ALTER TABLE user_repo_configs "
+                "ADD COLUMN IF NOT EXISTS google_refresh_token TEXT"
+            )
+        )
+        await conn.execute(
+            text(
+                "ALTER TABLE user_repo_configs "
+                "ADD COLUMN IF NOT EXISTS google_token_expires_at TIMESTAMP WITH TIME ZONE"
+            )
+        )
+        await conn.execute(
+            text(
+                "ALTER TABLE user_repo_configs "
+                "ADD COLUMN IF NOT EXISTS google_email VARCHAR(255)"
+            )
+        )
     logger.info("Database tables created")
 
     from src.common.database import AsyncSessionLocal
