@@ -23,7 +23,7 @@ from src.auth.models import User, UserRole
 from src.common.database import get_db
 from src.common.redis import get_redis
 from src.config import settings
-from src.jira.models import JiraTicket, JiraCommit, TicketStatus
+from src.jira.models import JiraTicket, JiraCommit, TicketPriority, TicketStatus, TicketType
 from src.jira.schemas import TicketCreate
 from src.jira.service import create_ticket, list_tickets
 from src.repo.context_service import (
@@ -71,6 +71,12 @@ class GoogleAuthUrlResponse(BaseModel):
 class GoogleImportRequest(BaseModel):
     title: str
     content: str
+
+
+class AssigneeOption(BaseModel):
+    id: str
+    name: str
+    username: str
 
 
 MAX_SELECTED_FILES = 20
@@ -205,6 +211,46 @@ def _build_doc_input_from_files(repo_path: str, file_paths: list[str]) -> str:
     return "\n".join(sections)
 
 
+def _parse_list(value) -> list[str]:
+    if value is None:
+        return []
+    if isinstance(value, list):
+        return [str(v).strip() for v in value if str(v).strip()]
+    if isinstance(value, str):
+        return [line.strip("- ").strip() for line in value.splitlines() if line.strip()]
+    return []
+
+
+KNOWN_ASSIGNEE_USERNAMES = {"dev_alice", "dev_peter", "skleinke"}
+
+
+async def _resolve_assignee(
+    db: AsyncSession,
+    *,
+    assignee_id: str | None = None,
+    assignee_name: str | None = None,
+) -> str | None:
+    if assignee_id:
+        user = await db.get(User, assignee_id)
+        if user and user.role == UserRole.DEVELOPER and user.username in KNOWN_ASSIGNEE_USERNAMES:
+            return user.id
+
+    name = (assignee_name or "").strip()
+    if not name:
+        return None
+
+    # Try exact full-name/username match first within known assignees.
+    result = await db.execute(select(User).where(User.role == UserRole.DEVELOPER))
+    developers = result.scalars().all()
+    for dev in developers:
+        if dev.username not in KNOWN_ASSIGNEE_USERNAMES:
+            continue
+        if dev.full_name.lower() == name.lower() or dev.username.lower() == name.lower():
+            return dev.id
+
+    return None
+
+
 @router.get("/dashboard")
 async def get_dashboard(
     current_user: User = Depends(_require_ba),
@@ -240,6 +286,18 @@ async def get_ba_tickets(
     db: AsyncSession = Depends(get_db),
 ):
     return await list_tickets(db, reporter_id=current_user.id, sprint=sprint)
+
+
+@router.get("/assignees", response_model=list[AssigneeOption])
+async def get_assignees(
+    current_user: User = Depends(_require_ba),
+    db: AsyncSession = Depends(get_db),
+):
+    result = await db.execute(
+        select(User).where(User.role == UserRole.DEVELOPER).order_by(User.full_name)
+    )
+    users = [u for u in result.scalars().all() if u.username in KNOWN_ASSIGNEE_USERNAMES]
+    return [AssigneeOption(id=u.id, name=u.full_name, username=u.username) for u in users]
 
 
 @router.post("/tickets/{ticket_id}/explain-commits")
@@ -456,16 +514,54 @@ async def bulk_create_tickets(
     """Create multiple approved ticket proposals."""
     created = []
     for t in body.tickets:
+        acceptance_criteria = _parse_list(t.get("acceptance_criteria"))
+        affected_files = _parse_list(t.get("affected_files"))
+        assignee_id = await _resolve_assignee(
+            db,
+            assignee_id=t.get("assignee_id") or t.get("suggested_assignee"),
+            assignee_name=t.get("assignee_name"),
+        )
+        due_date = None
+        due_raw = t.get("due_date")
+        if isinstance(due_raw, str) and due_raw.strip():
+            try:
+                due_date = datetime.fromisoformat(due_raw.strip())
+            except ValueError:
+                due_date = None
+
+        status_raw = str(t.get("status", "todo")).lower().strip()
+        try:
+            status = TicketStatus(status_raw)
+        except ValueError:
+            status = TicketStatus.TODO
+
+        type_raw = str(t.get("ticket_type", "story")).lower().strip()
+        try:
+            ticket_type = TicketType(type_raw)
+        except ValueError:
+            ticket_type = TicketType.STORY
+
+        priority_raw = str(t.get("priority", "medium")).lower().strip()
+        try:
+            priority = TicketPriority(priority_raw)
+        except ValueError:
+            priority = TicketPriority.MEDIUM
+
         ticket_data = TicketCreate(
+            id=t.get("id") or None,
             title=t.get("title", ""),
             description=t.get("description", ""),
-            ticket_type=t.get("ticket_type", "story"),
-            priority=t.get("priority", "medium"),
+            status=status,
+            ticket_type=ticket_type,
+            priority=priority,
             story_points=t.get("story_points"),
+            sprint=t.get("sprint"),
             reporter_id=body.reporter_id or current_user.id,
-            assignee_id=t.get("suggested_assignee"),
-            acceptance_criteria="\n".join(t.get("acceptance_criteria", [])),
-            affected_files=t.get("affected_files", []),
+            assignee_id=assignee_id,
+            acceptance_criteria="\n".join(acceptance_criteria),
+            technical_doc_link=t.get("technical_doc_link") or None,
+            affected_files=affected_files,
+            due_date=due_date,
         )
         ticket = await create_ticket(db, ticket_data)
         created.append({"id": ticket.id, "title": ticket.title})

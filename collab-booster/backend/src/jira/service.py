@@ -1,3 +1,5 @@
+import re
+
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -48,14 +50,22 @@ async def list_tickets(
 async def create_ticket(db: AsyncSession, data: TicketCreate) -> JiraTicket:
     # Auto-generate ID if not provided
     if not data.id:
-        result = await db.execute(select(JiraTicket))
-        count = len(list(result.scalars().all()))
-        data.id = f"JIRA-{count + 1}"
+        result = await db.execute(select(JiraTicket.id))
+        max_num = 0
+        for raw_id in result.scalars().all():
+            if not raw_id:
+                continue
+            match = re.match(r"^JIRA-(\d+)$", str(raw_id).strip(), flags=re.IGNORECASE)
+            if not match:
+                continue
+            max_num = max(max_num, int(match.group(1)))
+        data.id = f"JIRA-{max_num + 1}"
 
     ticket = JiraTicket(
         id=data.id,
         title=data.title,
         description=data.description,
+        status=data.status,
         ticket_type=data.ticket_type,
         priority=data.priority,
         story_points=data.story_points,
@@ -65,6 +75,7 @@ async def create_ticket(db: AsyncSession, data: TicketCreate) -> JiraTicket:
         acceptance_criteria=data.acceptance_criteria,
         technical_doc_link=data.technical_doc_link or DEFAULT_TRS_DOC_LINK,
         affected_files=data.affected_files,
+        due_date=data.due_date,
     )
     db.add(ticket)
     await db.flush()

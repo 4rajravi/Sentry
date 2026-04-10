@@ -45,6 +45,7 @@ class TicketCreate(BaseModel):
     id: str | None = None
     title: str
     description: str
+    status: TicketStatus = TicketStatus.TODO
     ticket_type: TicketType = TicketType.STORY
     priority: TicketPriority = TicketPriority.MEDIUM
     story_points: int | None = None
@@ -54,6 +55,7 @@ class TicketCreate(BaseModel):
     acceptance_criteria: str | None = None
     technical_doc_link: str | None = None
     affected_files: list[str] | None = None
+    due_date: datetime | None = None
 
 
 class TicketUpdate(BaseModel):
